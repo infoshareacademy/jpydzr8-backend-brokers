@@ -2,7 +2,7 @@ from datetime import datetime
 
 class User:
     def __init__(self, first_name: str, last_name: str, email: str, password: str, account_type: str,
-                 date_of_birth: str = None, phone_number: str = None, address: str = None):
+                 date_of_birth: str, phone_number: str = None, address: str = None):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
