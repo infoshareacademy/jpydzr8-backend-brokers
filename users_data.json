@@ -1,0 +1,56 @@
+{
+    "krowa@mu.mu": {
+        "first_name": "łaciata",
+        "last_name": "krowa",
+        "email": "krowa@mu.mu",
+        "account_type": "business",
+        "date of birth": "01-01-1901",
+        "phone_number": "999555111",
+        "address": "laka"
+    },
+    "zuczek@wp.pl": {
+        "first_name": "zuczek",
+        "last_name": "maly",
+        "email": "zuczek@wp.pl",
+        "account_type": "personal",
+        "date of birth": "03-03-2000",
+        "phone_number": "1122112253",
+        "address": "laka 11"
+    },
+    "biedronkabuziaczek@red.eu": {
+        "first_name": "biedronka",
+        "last_name": "czerwona",
+        "email": "biedronkabuziaczek@red.eu",
+        "account_type": "business",
+        "date of birth": "01-01-1901",
+        "phone_number": "333666333",
+        "address": "laka 01"
+    },
+    "konik@polnu.wp": {
+        "first_name": "Konik",
+        "last_name": "Polny",
+        "email": "konik@polnu.wp",
+        "account_type": "personal",
+        "date of birth": "01-01-2007",
+        "phone_number": "",
+        "address": ""
+    },
+    "filip@wp.pl": {
+        "first_name": "swierszcza",
+        "last_name": "filip",
+        "email": "filip@wp.pl",
+        "account_type": "business",
+        "date of birth": "01-02-2000",
+        "phone_number": "",
+        "address": ""
+    },
+    "hekla@wp.pl": {
+        "first_name": "hekla",
+        "last_name": "pajaczek",
+        "email": "hekla@wp.pl",
+        "account_type": "personal",
+        "date of birth": "10-10-2005",
+        "phone_number": "",
+        "address": ""
+    }
+}
