@@ -27,7 +27,7 @@ class Wallet:
             wallet_id = str(random.randint(1, 999999999)).zfill(9) #generates random id and adds leading zeros up to 9 digits
             if wallet_id not in data:
                 break
-        iban = IBAN.generate("PL", bank_code='25263241', account_code=wallet_id) #generates valid IBAN
+        iban = IBAN.generate("PL", bank_code='252', account_code=wallet_id) #generates valid IBAN
         data[wallet_id] = [owner_id, currency, iban, 0] #creates new wallet with balance = 0
         with open('wallets.json', 'w') as write_file:
             json.dump(data, write_file, indent=4)
@@ -69,6 +69,17 @@ class Wallet:
                 raise Exception(f"Wallet {wallet_id} has a balance of {data[wallet_id][3]} {data[wallet_id][1]}. This is insufficient to withdraw {amount * -1} {data[wallet_id][1]}.")
         else:
             raise Exception(f"Wallet {wallet_id} was not found in the DB.")
+
+    # def to make:
+
+    def show_all_wallet():
+        #show all wallets with ID and mayby currency, looking for user email
+        pass
+
+    def delete_wallet():
+        #choose wallet id, ane delete wallet if currency is = 0
+        pass
+
 
 
 print(Wallet.check_balance('018315965'))

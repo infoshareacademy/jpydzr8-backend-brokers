@@ -3,6 +3,7 @@ import json
 import bcrypt
 from datetime import datetime
 from user import User
+from wallet import Wallet
 
 
 class UserRegistration:
@@ -146,7 +147,7 @@ class UserRegistration:
 
         if bcrypt.checkpw(password.encode('utf-8'), hashed_pass):
             print('Login successful.')
-            # We create a User object based on information from the users_file file
+            # We create a User object based on information from the users_file
             user_data = self.users[email]
             user = User(
                 first_name=user_data['first_name'],
@@ -157,7 +158,70 @@ class UserRegistration:
                 date_of_birth=user_data['date of birth'],
                 phone_number=user_data['phone_number'],
                 address=user_data['address'])
+            self.user_menu(user)
             return user
         else:
             print('Login failed.')
             return None
+
+    def user_menu(self, user: User):
+
+        user_menu_mess = """
+What would you like to do?
+Press 1 to update personal info
+Press 2 to create new wallet
+Press 3 to show all wallets with them ID 
+Press 4 to check balance of choosen wallet
+Press 5 to change balance of choosen wallet
+Press 6 to delete wallet
+Press X to exit"""
+
+        while True:
+            print(user_menu_mess)
+
+            option = input('Choose your option: ').lower().strip()
+
+            if option == 'x':
+                print("Goodbye.")
+                break
+            elif option == '1':
+                self.update_user_info(user)
+            elif option == '2':
+                currency = input('Choose currecy code, for example PLN, USD ():').strip().upper()
+                print(Wallet.create_wallet(user.email, currency))
+            elif option == '3':
+                #show_all_wallet(user.email)
+                print('Ahow all wallet function in preparation.')
+                pass
+            elif option == '4':
+                wallet_id = int(input('Enter choosen wallet number:').strip())
+                print(Wallet.check_balance(wallet_id))
+            elif option == '5':
+                wallet_id = int(input('Enter choosen wallet number:').strip())
+                amount = input('Enter amount of currency:')
+                print(Wallet.transfer_funds(wallet_id, amount))
+            elif option == '6':
+                #self.delete_wallet(user.email)
+                print('Wallet removal function in preparation.')
+                pass
+            else:
+                print("Unrecognized command. Try again.")
+
+    def update_user_info(self, user: User):
+        print("Leave blank to keep existing value.")
+
+        first_name = input(f"First name [{user.first_name}]: ").strip() or user.first_name
+        last_name = input(f"Last name [{user.last_name}]: ").strip() or user.last_name
+        phone = input(f"Phone number [{user.phone_number or ''}]: ").strip() or user.phone_number
+        address = input(f"Address [{user.address or ''}]: ").strip() or user.address
+
+        user.update_user_info(first_name, last_name, None, phone, address)
+
+        # Zapisz zmienione dane
+        self.users[user.email]['first_name'] = user.first_name
+        self.users[user.email]['last_name'] = user.last_name
+        self.users[user.email]['phone_number'] = user.phone_number
+        self.users[user.email]['address'] = user.address
+
+        self.save_json(self.users, self.users_file)
+        print("User data updated successfully.")
