@@ -1,0 +1,44 @@
+{
+    "users": {
+        "jkowalski123": [
+            {
+                "wallet_id": "400862808",
+                "currency": "PLN",
+                "iban": "PL21252632410000000400862808",
+                "balance": 0
+            },
+            {
+                "wallet_id": "018315965",
+                "currency": "PLN",
+                "iban": "PL15252632410000000018315965",
+                "balance": 170.0
+            },
+            {
+                "wallet_id": "283109902",
+                "currency": "PLN",
+                "iban": "PL29252632410000000283109902",
+                "balance": 0
+            },
+            {
+                "wallet_id": "315080883",
+                "currency": "PLN",
+                "iban": "PL25252632410000000315080883",
+                "balance": 0
+            }
+        ],
+        "zuczek@wp.pl": [
+            {
+                "wallet_id": "150578490",
+                "currency": "PLN",
+                "iban": "PL08252000050000000150578490",
+                "balance": 0
+            },
+            {
+                "wallet_id": "403698606",
+                "currency": "USD",
+                "iban": "PL31252000050000000403698606",
+                "balance": 0
+            }
+        ]
+    }
+}
