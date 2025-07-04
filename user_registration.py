@@ -13,6 +13,7 @@ class UserRegistration:
         self.auth = self.load_json(auth_file)
         self.users = self.load_json(users_file)
 
+
     @staticmethod
     def load_json(file_path):
         try:
@@ -20,21 +21,25 @@ class UserRegistration:
                 return json.load(file)
         except FileNotFoundError:
             return {}
-        
+
+
     @staticmethod
     def save_json(data, file_path):
         with open(file_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, indent=4, ensure_ascii=False)
 
+
     @staticmethod
-    def is_valid_email(mail):
+    def is_valid_email(email):
         """Checks if it's an email"""
         pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
-        return re.match(pattern, mail) is not None
+        return re.match(pattern, email) is not None
+
 
     def check_mail(self, email):
         """Check email exist in current database"""
         return email not in self.auth
+
 
     @staticmethod
     def input_with_limit(text, max_length=25):
@@ -44,6 +49,7 @@ class UserRegistration:
             if len(value) <= max_length:
                 return value
             print(f'Too long! Max {max_length} characters')
+
 
     @staticmethod
     def validate_age(date_of_birth: str) -> str:
@@ -116,6 +122,7 @@ class UserRegistration:
             "address": address,
         }
 
+
     def register_user(self):
         user_info = self.get_user_input()
 
@@ -133,6 +140,7 @@ class UserRegistration:
         self.save_json(self.users, self.users_file)
 
         print(f"Your {user_info['account_type']} account was successfully created.")
+
 
     def login(self):
         """Login to account. Password validation. -> Boolean"""
@@ -164,6 +172,7 @@ class UserRegistration:
             print('Login failed.')
             return None
 
+
     def user_menu(self, user: User):
 
         user_menu_mess = """
@@ -182,27 +191,25 @@ Press X to exit"""
             option = input('Choose your option: ').lower().strip()
 
             if option == 'x':
-                print("Goodbye.")
+                print("Goodbye")
                 break
             elif option == '1':
                 self.update_user_info(user)
             elif option == '2':
-                currency = input('Choose currecy code, for example PLN, USD ():').strip().upper()
+                currency = str(input('Choose currecy code, for example PLN, USD ():').strip().upper())
                 print(Wallet.create_wallet(user.email, currency))
             elif option == '3':
-                #show_all_wallet(user.email)
-                print('Ahow all wallet function in preparation.')
-                pass
+                print(Wallet.show_all_wallet(user.email))
             elif option == '4':
-                wallet_id = int(input('Enter choosen wallet number:').strip())
-                print(Wallet.check_balance(wallet_id))
+                currency = str(input('which currency would you like to SEE? (use format like USD, XXX):').strip().upper())
+                print(Wallet.check_balance(user.email, currency))
             elif option == '5':
-                wallet_id = int(input('Enter choosen wallet number:').strip())
-                amount = input('Enter amount of currency:')
-                print(Wallet.transfer_funds(wallet_id, amount))
+                currency = str(input('Which currency would you like to CHANGE? (use format like USD, XXX):').strip().upper())
+                amount = float(input('Enter amount of currency:'))
+                print(Wallet.transfer_funds(user.email, currency, amount))
             elif option == '6':
-                #self.delete_wallet(user.email)
-                print('Wallet removal function in preparation.')
+                currency = str(input('Which currency wallet would you like to DELETE? (use format like USD, XXX):').strip().upper())
+                print(Wallet.delete_wallet(user.email, currency))
                 pass
             else:
                 print("Unrecognized command. Try again.")
@@ -215,13 +222,25 @@ Press X to exit"""
         phone = input(f"Phone number [{user.phone_number or ''}]: ").strip() or user.phone_number
         address = input(f"Address [{user.address or ''}]: ").strip() or user.address
 
+        while True:
+            account_type_input = input(f"Account type [{user.account_type}] (personal/business): ").strip().lower()
+            if account_type_input == '':
+                account_type = user.account_type
+                break
+            elif account_type_input in ['personal', 'business']:
+                account_type = account_type_input
+                break
+            else:
+                print('Please enter "personal" or "business", or leave blank to keep current value.')
+
         user.update_user_info(first_name, last_name, None, phone, address)
 
-        # Zapisz zmienione dane
+        # save changing data
         self.users[user.email]['first_name'] = user.first_name
         self.users[user.email]['last_name'] = user.last_name
         self.users[user.email]['phone_number'] = user.phone_number
         self.users[user.email]['address'] = user.address
+        self.users[user.email]['account_type'] = user.account_type
 
         self.save_json(self.users, self.users_file)
         print("User data updated successfully.")

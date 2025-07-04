@@ -16,5 +16,8 @@
     },
     "hekla@wp.pl": {
         "hashed_pass": "$2b$12$w7zd5fBOPoicx4LloOcg9eCCIN.CnyZuZUNgcvdiHyuYFgWMt.Ln6"
+    },
+    "x@wp.pl": {
+        "hashed_pass": "$2b$12$QEGJRPuePA92atAdI7BBlOaWjDcsKcapir3Eu4ehnXT5HRXXi4w5e"
     }
 }

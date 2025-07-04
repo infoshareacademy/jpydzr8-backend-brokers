@@ -18,7 +18,7 @@ Press X to exit.
         option = input('Choose your option: ').lower().strip()
 
         if option == 'x':
-            print("Goodbye.")
+            print("Goodbye")
             break
         elif option == '1':
             print("Let's create your account.")
@@ -27,7 +27,7 @@ Press X to exit.
             print("Let's login.")
             current_user = app.login()
             if current_user:
-                print(f'Zalogowano użytkownika: {current_user.first_name} {current_user.last_name}')
+                print(f'User {current_user.first_name} {current_user.last_name}')
                 break
         else:
             print("Unrecognized command. Try again.")

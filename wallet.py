@@ -4,17 +4,16 @@ import random
 
 
 class Wallet:
-    def  __init__(self, wallet_id: str, owner_id: str, currency: str, iban: int, balance: float):
+    def __init__(self, wallet_id: str, owner_id: str, currency: str, iban: int, balance: float):
         self.wallet_id = wallet_id
         self.currency = currency
-        self.iban = iban #International Bank Account Number
+        self.iban = iban  # International Bank Account Number
         self.balance = balance
         self.owner = owner_id
         self.history = {}
 
-
     @staticmethod
-    def create_wallet(owner_id: str, currency: str):
+    def create_wallet(email: str, currency: str):
         """
         Creates a new wallet of currency *currency* for user *owner_id*, random wallet_id, valid IBAN, saves data to file.
         :param owner_id: user identifier
@@ -23,19 +22,44 @@ class Wallet:
         """
         with open('wallets.json', 'r') as f:
             data = json.load(f)
+        
+        #create new user, if not exist
+        if "users" not in data:
+            data["users"] = {}
+        if email not in data["users"]:
+            data["users"][email] = []
+        
+        #get existing wallet IDs of this user
+        existing_wallet_ids = {
+            wallet["wallet_id"]
+            for wallets in data["users"].values()
+            for wallet in wallets
+    }
+
         while True:    # makes sure there are no duplicate wallet ids
             wallet_id = str(random.randint(1, 999999999)).zfill(9) #generates random id and adds leading zeros up to 9 digits
-            if wallet_id not in data:
+            if wallet_id not in existing_wallet_ids:
                 break
+
         iban = IBAN.generate("PL", bank_code='252', account_code=wallet_id) #generates valid IBAN
-        data[wallet_id] = [owner_id, currency, iban, 0] #creates new wallet with balance = 0
+
+         #creates new wallet with balance = 0
+        new_wallet = {
+            "wallet_id": wallet_id,
+            "currency": currency,
+            "iban": iban,
+            "balance": 0
+        }
+
+        data["users"][email].append(new_wallet)
+
         with open('wallets.json', 'w') as write_file:
-            json.dump(data, write_file, indent=4)
-        return f"Wallet {wallet_id} for user {owner_id} created successfully."
+            json.dump(data, write_file, indent=4, ensure_ascii=False)
+        return f"Wallet {wallet_id} for user {email} created successfully."
 
 
     @staticmethod
-    def check_balance(wallet_id: str) -> float|str:
+    def check_balance(email: str, currency: str):
         """
         returns current balance for wallet of *wallet_id* id
         :param wallet_id: int
@@ -43,47 +67,99 @@ class Wallet:
         """
         with open('wallets.json', 'r') as f:
             data = json.load(f)
-        if str(wallet_id) in data.keys():
-            return data[wallet_id][3]
-        else:
-            return f"Wallet {wallet_id} was not found in the DB."
+
+        user_wallets = data.get("users", {}).get(email)
+        if not user_wallets:
+            return f"User {email} not found."
+
+        for wallet in user_wallets:
+            if wallet.get("currency") == currency:
+                return wallet.get("balance", 0.0)
+
+        return f"Wallet {currency} not found for user {email}."
 
 
     @staticmethod
-    def transfer_funds(wallet_id: int|str, amount: float):
+    def transfer_funds(email: str, currency: str, amount: float):
         """
-        changes balance on the account linked to wallet of *wallet_id* by amount *amount*
-        :param wallet_id:
-        :param amount: amount to be transferred in the wallet's currency.
-                        Use positive values for deposits and negative values for withdrawals.
-        :return:
+        Transfers funds to the user's wallet in a given currency.
+
+        :param email: Email of the user
+        :param currency: Currency of the target wallet (e.g. 'PLN', 'USD', 'GBP')
+        :param amount: Amount to transfer (positive for deposit, negative for withdrawal)
+        :return: Success or error message
         """
         with open('wallets.json', 'r') as f:
             data = json.load(f)
-        if str(wallet_id) in data.keys():
-            if data[wallet_id][3] + amount > 0:
-                data[wallet_id][3] += amount
-                with open('wallets.json', 'w') as write_file:
-                    json.dump(data, write_file, indent=4)
-            else:
-                raise Exception(f"Wallet {wallet_id} has a balance of {data[wallet_id][3]} {data[wallet_id][1]}. This is insufficient to withdraw {amount * -1} {data[wallet_id][1]}.")
-        else:
-            raise Exception(f"Wallet {wallet_id} was not found in the DB.")
 
-    # def to make:
+        user_wallets = data.get("users", {}).get(email)
+        if not user_wallets:
+            return f"User {email} not found."
 
-    def show_all_wallet():
-        #show all wallets with ID and mayby currency, looking for user email
-        pass
+        for wallet in user_wallets:
+            if wallet['currency'] != currency:
+                continue
 
-    def delete_wallet():
-        #choose wallet id, ane delete wallet if currency is = 0
-        pass
+            #check status after tranfer, dont let make transfer if balance will be less then 0    
+            if wallet['balance'] + amount < 0:
+                return(f"Insufficient funds. Current balance: {wallet['balance']} {wallet['currency']}, "
+                       f"attempted withdrawal: {-amount} {wallet['currency']}.")
+            
+            wallet['balance'] += amount
 
+            with open('wallets.json', 'w') as f:
+                json.dump(data, f, indent=4)
 
+            return (f"Transaction successful. New balance for wallet ({currency}): "
+                    f"{wallet['balance']} {wallet['currency']}.")
 
-print(Wallet.check_balance('018315965'))
-Wallet.transfer_funds('018315965', 21.25)
-print(Wallet.check_balance('090957373'))
-print(Wallet.create_wallet('jkowalski123', 'PLN'))
-# Wallet.transfer_funds('018315965', -221.25)
+        return f"No wallet in currency '{currency}' found for user '{email}'."
+        
+    @staticmethod
+    def show_all_wallet(email: str) -> str:
+
+        with open('wallets.json', 'r') as f:
+            data = json.load(f)
+        
+        wallets = data.get("users", {}).get(email)
+        if not wallets:
+            return f"User '{email}' has no wallets."
+
+        result = f"Wallets for {email}:\n"
+        for wallet in wallets:
+            result += f"• Wallet ID: {wallet['wallet_id']}, Currency: {wallet['currency']}, Balance: {wallet['balance']}\n"
+        return result
+    
+
+    def delete_wallet(email: str, currency: str) -> str:
+        """
+        Deletes the first wallet in the given currency for a specified user.
+
+        :param email: Email of the user
+        :param currency: Currency of the wallet to delete
+        :return: Success or error message
+        """
+        with open('wallets.json', 'r') as f:
+            data = json.load(f)
+
+        user_wallets = data.get("users", {}).get(email)
+        if not user_wallets:
+            return f"User {email} not found."
+        
+        for i, wallet in enumerate(user_wallets):
+            if wallet["currency"] != currency:
+                continue
+
+            if wallet["balance"] != 0:
+                return (f"Cannot delete wallet {wallet['wallet_id']} in {currency}: "
+                        f"balance must be 0, current balance is {wallet['balance']} {currency}.")
+
+            deleted_wallet = user_wallets.pop(i)
+
+            with open('wallets.json', 'w') as f:
+                json.dump(data, f, indent=4)
+
+            return (f"Deleted wallet: {deleted_wallet['wallet_id']} "
+                    f"({deleted_wallet['currency']}, balance: {deleted_wallet['balance']}).")
+
+        return f"No wallet with currency '{currency}' found for user '{email}'."
