@@ -19,5 +19,8 @@
     },
     "x@wp.pl": {
         "hashed_pass": "$2b$12$QEGJRPuePA92atAdI7BBlOaWjDcsKcapir3Eu4ehnXT5HRXXi4w5e"
+    },
+    "kos@wp.pl": {
+        "hashed_pass": "$2b$12$2hNfDOlM.n2clGD/WCadguOr60MkdZTb/pC5fW58lDsze0psTeHDK"
     }
 }

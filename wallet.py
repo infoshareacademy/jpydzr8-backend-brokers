@@ -80,13 +80,16 @@ class Wallet:
 
 
     @staticmethod
-    def transfer_funds(email: str, currency: str, amount: float):
+    def transfer_funds(email: str, currency: str, amount: float, nbp_client):
         """
         Transfers funds to the user's wallet in a given currency.
+        Deposits (amount > 0) are assumed to be made in PLN and converted to the target currency.
+        Withdrawals (amount < 0) are made directly in the target currency.
 
         :param email: Email of the user
         :param currency: Currency of the target wallet (e.g. 'PLN', 'USD', 'GBP')
         :param amount: Amount to transfer (positive for deposit, negative for withdrawal)
+        :param nbp_client: instance of NBPClient
         :return: Success or error message
         """
         with open('wallets.json', 'r') as f:
@@ -96,22 +99,43 @@ class Wallet:
         if not user_wallets:
             return f"User {email} not found."
 
+        amount_to_add = amount
+        deposit_currency = 'PLN'  # Default deposit currency
+
+        # --- Deposit Logic (if amount > 0) ---
+        if amount > 0:
+            if currency != deposit_currency:
+                # Convert PLN to the target currency
+                try:
+                    # Exchange rate for converting from PLN to Target Currency.
+                    # NBPClient.rates relies on 'PLN' being set to 1.0.
+                    exchange_rate = nbp_client.rates[deposit_currency] / nbp_client.rates[currency]
+                    converted_amount = amount * exchange_rate
+                    print(
+                        f"Amount {amount} PLN has been converted to {converted_amount:.2f} {currency} based on the current exchange rate.")
+                    amount_to_add = converted_amount
+                except (KeyError, TypeError):
+                    return f"Error converting currency. No exchange rate found for {currency}."
+
+        # --- Transaction Application ---
+
         for wallet in user_wallets:
             if wallet['currency'] != currency:
                 continue
 
-            #check status after tranfer, dont let make transfer if balance will be less then 0    
-            if wallet['balance'] + amount < 0:
-                return(f"Insufficient funds. Current balance: {wallet['balance']} {wallet['currency']}, "
-                       f"attempted withdrawal: {-amount} {wallet['currency']}.")
-            
-            wallet['balance'] += amount
+            # Check if balance will be sufficient for withdrawal (applies only if amount_to_add is negative)
+            if wallet['balance'] + amount_to_add < 0:
+                # For withdrawals, we show the original withdrawal amount
+                return (f"Insufficient funds. Current balance: {wallet['balance']} {wallet['currency']}, "
+                        f"attempted withdrawal: {-amount} {wallet['currency']}.")
+
+            wallet['balance'] += round(amount_to_add, 2)
 
             with open('wallets.json', 'w') as f:
                 json.dump(data, f, indent=4)
 
             return (f"Transaction successful. New balance for wallet ({currency}): "
-                    f"{wallet['balance']} {wallet['currency']}.")
+                    f"{wallet['balance']:.2f} {wallet['currency']}.")
 
         return f"No wallet in currency '{currency}' found for user '{email}'."
         
@@ -163,3 +187,55 @@ class Wallet:
                     f"({deleted_wallet['currency']}, balance: {deleted_wallet['balance']}).")
 
         return f"No wallet with currency '{currency}' found for user '{email}'."
+
+    @staticmethod
+    def transfer_between_wallets(email: str, from_currency: str, to_currency: str, amount: float, nbp_client):
+        """
+        Transfers funds from one wallet to another for the same user,
+        converting the amount at the current exchange rate.
+
+        :param email: User's email
+        :param from_currency: Source wallet currency
+        :param to_currency: Destination wallet currency
+        :param amount: Amount to transfer
+        :param nbp_client: NBP client instance
+        :return: Success or error message
+        """
+        if from_currency == to_currency:
+            return "Wallet currencies must be different."
+
+        if amount <= 0:
+            return "Transfer amount must be positive."
+
+        with open('wallets.json', 'r') as f:
+            data = json.load(f)
+
+        user_wallets = data.get("users", {}).get(email)
+        if not user_wallets:
+            return f"User {email} not found."
+
+        from_wallet = next((w for w in user_wallets if w['currency'] == from_currency), None)
+        to_wallet = next((w for w in user_wallets if w['currency'] == to_currency), None)
+
+        if not from_wallet:
+            return f"Source wallet in currency '{from_currency}' not found."
+        if not to_wallet:
+            return f"Destination wallet in currency '{to_currency}' not found."
+
+        if from_wallet['balance'] < amount:
+            return f"Insufficient funds in wallet '{from_currency}'."
+
+        try:
+            exchange_rate = nbp_client.rates[from_currency] / nbp_client.rates[to_currency]
+            converted_amount = amount * exchange_rate
+        except (KeyError, TypeError):
+            return f"Error converting currencies. No rate found for {from_currency} or {to_currency}."
+
+        from_wallet['balance'] -= amount
+        to_wallet['balance'] += round(converted_amount, 2)
+
+        with open('wallets.json', 'w') as f:
+            json.dump(data, f, indent=4)
+
+        return (f"Transfer successful. {amount:.2f} {from_currency} has been transferred to {to_currency} wallet.\n"
+                f"New balances: {from_currency}: {from_wallet['balance']:.2f}, {to_currency}: {to_wallet['balance']:.2f}")

@@ -52,5 +52,14 @@
         "date of birth": "10-10-2005",
         "phone_number": "",
         "address": ""
+    },
+    "kos@wp.pl": {
+        "first_name": "kos",
+        "last_name": "biały",
+        "email": "kos@wp.pl",
+        "account_type": "personal",
+        "date of birth": "22-10-1995",
+        "phone_number": "333555444",
+        "address": "Gniazdo 1a"
     }
 }
