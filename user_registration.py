@@ -4,6 +4,7 @@ import bcrypt
 from datetime import datetime
 from user import User
 from wallet import Wallet
+from nbp_client import NBPClient
 
 
 class UserRegistration:
@@ -174,6 +175,7 @@ class UserRegistration:
 
 
     def user_menu(self, user: User):
+        nbp_client = NBPClient()
 
         user_menu_mess = """
 What would you like to do?
@@ -183,6 +185,8 @@ Press 3 to show all wallets with them ID
 Press 4 to check balance of choosen wallet
 Press 5 to change balance of choosen wallet
 Press 6 to delete wallet
+Press 7 to transfer funds between your wallets
+Press 8 to show current exchange rates
 Press X to exit"""
 
         while True:
@@ -205,12 +209,26 @@ Press X to exit"""
                 print(Wallet.check_balance(user.email, currency))
             elif option == '5':
                 currency = str(input('Which currency would you like to CHANGE? (use format like USD, XXX):').strip().upper())
-                amount = float(input('Enter amount of currency:'))
-                print(Wallet.transfer_funds(user.email, currency, amount))
+                try:
+                    amount = float(input('Enter amount of currency: (positive for deposit, negative for withdrawal)'))
+                    print(Wallet.transfer_funds(user.email, currency, amount, nbp_client))
+                except ValueError:
+                    print("Invalid amount. Please enter a number.")
             elif option == '6':
                 currency = str(input('Which currency wallet would you like to DELETE? (use format like USD, XXX):').strip().upper())
                 print(Wallet.delete_wallet(user.email, currency))
-                pass
+            elif option == '7':
+                from_currency = input("Which wallet do you want to transfer funds FROM? (e.g., PLN, USD): ").strip().upper()
+                to_currency = input("Which wallet do you want to transfer funds TO? (e.g., PLN, USD): ").strip().upper()
+                try:
+                    amount = float(input(f"What amount do you want to transfer from {from_currency} to {to_currency}? "))
+                    print(Wallet.transfer_between_wallets(user.email, from_currency, to_currency, amount, nbp_client))
+                except ValueError:
+                    print("Invalid amount. Please enter a number.")
+            elif option == '8':
+                print(nbp_client.show_current_rates())
+
+
             else:
                 print("Unrecognized command. Try again.")
 

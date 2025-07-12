@@ -2,7 +2,6 @@ from user_registration import UserRegistration
 
 def main():
     app = UserRegistration()
-    current_user = None
 
     main_menu_mess = """
 Welcome to us cantor! 
