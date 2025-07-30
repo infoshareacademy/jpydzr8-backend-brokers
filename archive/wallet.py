@@ -4,7 +4,9 @@ import random
 
 
 class Wallet:
-    def __init__(self, wallet_id: str, owner_id: str, currency: str, iban: int, balance: float):
+    def __init__(
+        self, wallet_id: str, owner_id: str, currency: str, iban: int, balance: float
+    ):
         self.wallet_id = wallet_id
         self.currency = currency
         self.iban = iban  # International Bank Account Number
@@ -20,43 +22,46 @@ class Wallet:
         :param currency: currency code. TODO: set a list of available currencies?
         :return: saves new wallet to wallets.json and returns a confirmation.
         """
-        with open('wallets.json', 'r') as f:
+        with open("wallets.json", "r") as f:
             data = json.load(f)
-        
-        #create new user, if not exist
+
+        # create new user, if not exist
         if "users" not in data:
             data["users"] = {}
         if email not in data["users"]:
             data["users"][email] = []
-        
-        #get existing wallet IDs of this user
+
+        # get existing wallet IDs of this user
         existing_wallet_ids = {
             wallet["wallet_id"]
             for wallets in data["users"].values()
             for wallet in wallets
-    }
+        }
 
-        while True:    # makes sure there are no duplicate wallet ids
-            wallet_id = str(random.randint(1, 999999999)).zfill(9) #generates random id and adds leading zeros up to 9 digits
+        while True:  # makes sure there are no duplicate wallet ids
+            wallet_id = str(random.randint(1, 999999999)).zfill(
+                9
+            )  # generates random id and adds leading zeros up to 9 digits
             if wallet_id not in existing_wallet_ids:
                 break
 
-        iban = IBAN.generate("PL", bank_code='252', account_code=wallet_id) #generates valid IBAN
+        iban = IBAN.generate(
+            "PL", bank_code="252", account_code=wallet_id
+        )  # generates valid IBAN
 
-         #creates new wallet with balance = 0
+        # creates new wallet with balance = 0
         new_wallet = {
             "wallet_id": wallet_id,
             "currency": currency,
             "iban": iban,
-            "balance": 0
+            "balance": 0,
         }
 
         data["users"][email].append(new_wallet)
 
-        with open('wallets.json', 'w') as write_file:
+        with open("wallets.json", "w") as write_file:
             json.dump(data, write_file, indent=4, ensure_ascii=False)
         return f"Wallet {wallet_id} for user {email} created successfully."
-
 
     @staticmethod
     def check_balance(email: str, currency: str):
@@ -65,7 +70,7 @@ class Wallet:
         :param wallet_id: int
         :return: wallet balance (float) or None if wallet does not exist
         """
-        with open('wallets.json', 'r') as f:
+        with open("wallets.json", "r") as f:
             data = json.load(f)
 
         user_wallets = data.get("users", {}).get(email)
@@ -77,7 +82,6 @@ class Wallet:
                 return wallet.get("balance", 0.0)
 
         return f"Wallet {currency} not found for user {email}."
-
 
     @staticmethod
     def transfer_funds(email: str, currency: str, amount: float, nbp_client):
@@ -92,7 +96,7 @@ class Wallet:
         :param nbp_client: instance of NBPClient
         :return: Success or error message
         """
-        with open('wallets.json', 'r') as f:
+        with open("wallets.json", "r") as f:
             data = json.load(f)
 
         user_wallets = data.get("users", {}).get(email)
@@ -100,7 +104,7 @@ class Wallet:
             return f"User {email} not found."
 
         amount_to_add = amount
-        deposit_currency = 'PLN'  # Default deposit currency
+        deposit_currency = "PLN"  # Default deposit currency
 
         # --- Deposit Logic (if amount > 0) ---
         if amount > 0:
@@ -109,10 +113,13 @@ class Wallet:
                 try:
                     # Exchange rate for converting from PLN to Target Currency.
                     # NBPClient.rates relies on 'PLN' being set to 1.0.
-                    exchange_rate = nbp_client.rates[deposit_currency] / nbp_client.rates[currency]
+                    exchange_rate = (
+                        nbp_client.rates[deposit_currency] / nbp_client.rates[currency]
+                    )
                     converted_amount = amount * exchange_rate
                     print(
-                        f"Amount {amount} PLN has been converted to {converted_amount:.2f} {currency} based on the current exchange rate.")
+                        f"Amount {amount} PLN has been converted to {converted_amount:.2f} {currency} based on the current exchange rate."
+                    )
                     amount_to_add = converted_amount
                 except (KeyError, TypeError):
                     return f"Error converting currency. No exchange rate found for {currency}."
@@ -120,31 +127,35 @@ class Wallet:
         # --- Transaction Application ---
 
         for wallet in user_wallets:
-            if wallet['currency'] != currency:
+            if wallet["currency"] != currency:
                 continue
 
             # Check if balance will be sufficient for withdrawal (applies only if amount_to_add is negative)
-            if wallet['balance'] + amount_to_add < 0:
+            if wallet["balance"] + amount_to_add < 0:
                 # For withdrawals, we show the original withdrawal amount
-                return (f"Insufficient funds. Current balance: {wallet['balance']} {wallet['currency']}, "
-                        f"attempted withdrawal: {-amount} {wallet['currency']}.")
+                return (
+                    f"Insufficient funds. Current balance: {wallet['balance']} {wallet['currency']}, "
+                    f"attempted withdrawal: {-amount} {wallet['currency']}."
+                )
 
-            wallet['balance'] += round(amount_to_add, 2)
+            wallet["balance"] += round(amount_to_add, 2)
 
-            with open('wallets.json', 'w') as f:
+            with open("wallets.json", "w") as f:
                 json.dump(data, f, indent=4)
 
-            return (f"Transaction successful. New balance for wallet ({currency}): "
-                    f"{wallet['balance']:.2f} {wallet['currency']}.")
+            return (
+                f"Transaction successful. New balance for wallet ({currency}): "
+                f"{wallet['balance']:.2f} {wallet['currency']}."
+            )
 
         return f"No wallet in currency '{currency}' found for user '{email}'."
-        
+
     @staticmethod
     def show_all_wallet(email: str) -> str:
 
-        with open('wallets.json', 'r') as f:
+        with open("wallets.json", "r") as f:
             data = json.load(f)
-        
+
         wallets = data.get("users", {}).get(email)
         if not wallets:
             return f"User '{email}' has no wallets."
@@ -153,7 +164,6 @@ class Wallet:
         for wallet in wallets:
             result += f"• Wallet ID: {wallet['wallet_id']}, Currency: {wallet['currency']}, Balance: {wallet['balance']}\n"
         return result
-    
 
     def delete_wallet(email: str, currency: str) -> str:
         """
@@ -163,33 +173,39 @@ class Wallet:
         :param currency: Currency of the wallet to delete
         :return: Success or error message
         """
-        with open('wallets.json', 'r') as f:
+        with open("wallets.json", "r") as f:
             data = json.load(f)
 
         user_wallets = data.get("users", {}).get(email)
         if not user_wallets:
             return f"User {email} not found."
-        
+
         for i, wallet in enumerate(user_wallets):
             if wallet["currency"] != currency:
                 continue
 
             if wallet["balance"] != 0:
-                return (f"Cannot delete wallet {wallet['wallet_id']} in {currency}: "
-                        f"balance must be 0, current balance is {wallet['balance']} {currency}.")
+                return (
+                    f"Cannot delete wallet {wallet['wallet_id']} in {currency}: "
+                    f"balance must be 0, current balance is {wallet['balance']} {currency}."
+                )
 
             deleted_wallet = user_wallets.pop(i)
 
-            with open('wallets.json', 'w') as f:
+            with open("wallets.json", "w") as f:
                 json.dump(data, f, indent=4)
 
-            return (f"Deleted wallet: {deleted_wallet['wallet_id']} "
-                    f"({deleted_wallet['currency']}, balance: {deleted_wallet['balance']}).")
+            return (
+                f"Deleted wallet: {deleted_wallet['wallet_id']} "
+                f"({deleted_wallet['currency']}, balance: {deleted_wallet['balance']})."
+            )
 
         return f"No wallet with currency '{currency}' found for user '{email}'."
 
     @staticmethod
-    def transfer_between_wallets(email: str, from_currency: str, to_currency: str, amount: float, nbp_client):
+    def transfer_between_wallets(
+        email: str, from_currency: str, to_currency: str, amount: float, nbp_client
+    ):
         """
         Transfers funds from one wallet to another for the same user,
         converting the amount at the current exchange rate.
@@ -207,35 +223,43 @@ class Wallet:
         if amount <= 0:
             return "Transfer amount must be positive."
 
-        with open('wallets.json', 'r') as f:
+        with open("wallets.json", "r") as f:
             data = json.load(f)
 
         user_wallets = data.get("users", {}).get(email)
         if not user_wallets:
             return f"User {email} not found."
 
-        from_wallet = next((w for w in user_wallets if w['currency'] == from_currency), None)
-        to_wallet = next((w for w in user_wallets if w['currency'] == to_currency), None)
+        from_wallet = next(
+            (w for w in user_wallets if w["currency"] == from_currency), None
+        )
+        to_wallet = next(
+            (w for w in user_wallets if w["currency"] == to_currency), None
+        )
 
         if not from_wallet:
             return f"Source wallet in currency '{from_currency}' not found."
         if not to_wallet:
             return f"Destination wallet in currency '{to_currency}' not found."
 
-        if from_wallet['balance'] < amount:
+        if from_wallet["balance"] < amount:
             return f"Insufficient funds in wallet '{from_currency}'."
 
         try:
-            exchange_rate = nbp_client.rates[from_currency] / nbp_client.rates[to_currency]
+            exchange_rate = (
+                nbp_client.rates[from_currency] / nbp_client.rates[to_currency]
+            )
             converted_amount = amount * exchange_rate
         except (KeyError, TypeError):
             return f"Error converting currencies. No rate found for {from_currency} or {to_currency}."
 
-        from_wallet['balance'] -= amount
-        to_wallet['balance'] += round(converted_amount, 2)
+        from_wallet["balance"] -= amount
+        to_wallet["balance"] += round(converted_amount, 2)
 
-        with open('wallets.json', 'w') as f:
+        with open("wallets.json", "w") as f:
             json.dump(data, f, indent=4)
 
-        return (f"Transfer successful. {amount:.2f} {from_currency} has been transferred to {to_currency} wallet.\n"
-                f"New balances: {from_currency}: {from_wallet['balance']:.2f}, {to_currency}: {to_wallet['balance']:.2f}")
+        return (
+            f"Transfer successful. {amount:.2f} {from_currency} has been transferred to {to_currency} wallet.\n"
+            f"New balances: {from_currency}: {from_wallet['balance']:.2f}, {to_currency}: {to_wallet['balance']:.2f}"
+        )

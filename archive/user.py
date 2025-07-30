@@ -1,8 +1,18 @@
 from datetime import datetime
 
+
 class User:
-    def __init__(self, first_name: str, last_name: str, email: str, password: str, account_type: str,
-                 date_of_birth: str, phone_number: str = None, address: str = None):
+    def __init__(
+        self,
+        first_name: str,
+        last_name: str,
+        email: str,
+        password: str,
+        account_type: str,
+        date_of_birth: str,
+        phone_number: str = None,
+        address: str = None,
+    ):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
@@ -31,7 +41,9 @@ class User:
         birth_date = datetime.strptime(date_of_birth, "%d-%m-%Y")  # "DD-MM-YYYY" format
         today = datetime.today()
         age = today.year - birth_date.year
-        if today.month < birth_date.month or (today.month == birth_date.month and today.day < birth_date.day):
+        if today.month < birth_date.month or (
+            today.month == birth_date.month and today.day < birth_date.day
+        ):
             age -= 1  # in case the user hasn't had birthday this year
 
         if age < 18:
@@ -56,8 +68,14 @@ class User:
         else:
             print(f"Wallet for {currency_code} does not exist.")
 
-    def update_user_info(self, first_name: str = None, last_name: str = None, email: str = None,
-                         phone_number: str = None, address: str = None) -> None:
+    def update_user_info(
+        self,
+        first_name: str = None,
+        last_name: str = None,
+        email: str = None,
+        phone_number: str = None,
+        address: str = None,
+    ) -> None:
         """Updates the user's information"""
         if first_name:
             self.first_name = first_name
