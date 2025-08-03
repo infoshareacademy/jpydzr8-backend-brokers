@@ -1,0 +1,26 @@
+{
+    "krowa@mu.mu": {
+        "hashed_pass": "$2b$12$tFQuCs5iUdPM63KJciE3ue5qcoT4zNFTYmX.LUnHwPLFVtYOwW0H6"
+    },
+    "zuczek@wp.pl": {
+        "hashed_pass": "$2b$12$/F/81kXQsdhvaCMrZiNYreMhcPTWDI/NJoP1U3n3A5/m87L4oBRMC"
+    },
+    "biedronkabuziaczek@red.eu": {
+        "hashed_pass": "$2b$12$dltFFGjl/4KIdXTcRJ1RXuVRBuH50mEv6ygh0ZKNm22r8sz.ze/iu"
+    },
+    "konik@polnu.wp": {
+        "hashed_pass": "$2b$12$UObi4p3Ra40Qp4e8AgetSuO8Ll1KdBdm9czC6qyKsARLTohxN6fg2"
+    },
+    "filip@wp.pl": {
+        "hashed_pass": "$2b$12$hyF6Nb9ZYgtyPqFLJsnUl.Ijf75iuN73OBuAjp1r27o2OXFJ4Rx2y"
+    },
+    "hekla@wp.pl": {
+        "hashed_pass": "$2b$12$w7zd5fBOPoicx4LloOcg9eCCIN.CnyZuZUNgcvdiHyuYFgWMt.Ln6"
+    },
+    "x@wp.pl": {
+        "hashed_pass": "$2b$12$QEGJRPuePA92atAdI7BBlOaWjDcsKcapir3Eu4ehnXT5HRXXi4w5e"
+    },
+    "kos@wp.pl": {
+        "hashed_pass": "$2b$12$2hNfDOlM.n2clGD/WCadguOr60MkdZTb/pC5fW58lDsze0psTeHDK"
+    }
+}
