@@ -1,6 +1,0 @@
-# command to run:
-# pip install -r requirements.txt
-
-black==24.4.2
-bcrypt==4.3.0
-schwifty==2025.6.0
