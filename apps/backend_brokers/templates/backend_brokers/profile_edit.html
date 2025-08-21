@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Edycja profilu</title></head>
+<body>
+  <h1>Edycja profilu</h1>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <fieldset>
+      <legend>Dane użytkownika</legend>
+      {{ uform.as_p }}
+    </fieldset>
+
+    <fieldset>
+      <legend>Dane profilu</legend>
+      {{ pform.as_p }}
+    </fieldset>
+
+    <button type="submit">Zapisz</button>
+    <a href="{% url 'profile' %}">Anuluj</a>
+  </form>
+</body>
+</html>

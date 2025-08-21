@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Register</title>
+</head>
+<body>
+    <h1>Utwórz konto</h1>
+  {% if form.non_field_errors %}
+    <div style="color:#b00020; margin-bottom:12px;">
+      {{ form.non_field_errors }}
+    </div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    {#
+    {% for field in form %}
+      {% if field.errors %}
+        <div style="color:#b00020">{{ field.label }}: {{ field.errors|striptags }}</div>
+      {% endif %}
+    {% endfor %}
+    #}
+
+    <button type="submit">Zarejestruj</button>
+  </form>
+
+  <p style="margin-top:16px;">
+    <p><a href="{% url 'login' %}">Zaloguj się</a></p>
+  </p>
+</body>
+</html>
