@@ -13,4 +13,5 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(next_page="login"), name="logout"),
     path("profile/", views.profile, name="profile"),
     path("profile/edit/", views.profile_edit, name="profile_edit"),
+    path("rates/", views.exchange_rates_view, name="exchange_rates"),
 ]

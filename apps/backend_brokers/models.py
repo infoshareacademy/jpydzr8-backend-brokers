@@ -41,3 +41,28 @@ class Profile(models.Model):
             self.wallet_limit = 50
 
         super().save(*args, **kwargs)
+
+
+class UserData(models.Model):
+    email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    account_type = models.CharField(max_length=20, choices=ACCOUNT_CHOICES, default="personal")
+    date_of_birth = models.DateField(null=True, blank=True)
+    phone_number = models.CharField(max_length=20, blank=True)
+    address = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return self.email
+    
+
+class Wallet(models.Model):
+    user = models.ForeignKey(UserData, on_delete=models.CASCADE, related_name="wallets")
+    wallet_id = models.CharField(max_length=50)
+    currency = models.CharField(max_length=10)
+    iban = models.CharField(max_length=34)
+    balance = models.FloatField(default=0)
+
+    def __str__(self):
+        return f"{self.wallet_id} ({self.currency})"
+    

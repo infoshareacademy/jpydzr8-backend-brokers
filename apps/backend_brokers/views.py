@@ -3,6 +3,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm, UserEditForm, ProfileEditForm
 from .models import Profile
+from apps.backend_brokers.nbp_client import NBPClient
 
 
 def home(request):
@@ -51,3 +52,10 @@ def profile_edit(request):
             "pform": profile_form,
         },
     )
+
+
+def exchange_rates_view(request):
+    nbp = NBPClient()
+    rates = nbp.rates
+    rates_sorted = {k: round(v, 2) for k, v in sorted(rates.items()) if k != "PLN"}
+    return render(request, "backend_brokers/exchange_rates.html", {"rates": rates_sorted})

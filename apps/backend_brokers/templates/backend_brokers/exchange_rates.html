@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Kursy walut NBP</title>
+</head>
+<body>
+    <h1>Kursy walut NBP</h1>
+    <ul>
+      {% for code, rate in rates.items %}
+        <li>1 {{ code }} = {{ rate }} PLN</li>
+      {% endfor %}
+    </ul>
+</body>
+</html>
