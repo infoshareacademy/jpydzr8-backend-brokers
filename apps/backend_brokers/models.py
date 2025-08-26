@@ -42,22 +42,11 @@ class Profile(models.Model):
 
         super().save(*args, **kwargs)
 
-
-class UserData(models.Model):
-    email = models.EmailField(unique=True)
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    account_type = models.CharField(max_length=20, choices=ACCOUNT_CHOICES, default="personal")
-    date_of_birth = models.DateField(null=True, blank=True)
-    phone_number = models.CharField(max_length=20, blank=True)
-    address = models.CharField(max_length=255, blank=True)
-
     def __str__(self):
-        return self.email
-    
+        return f"{self.user.first_name} {self.user.last_name} ({self.user.username})"
 
 class Wallet(models.Model):
-    user = models.ForeignKey(UserData, on_delete=models.CASCADE, related_name="wallets")
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="wallets")
     wallet_id = models.CharField(max_length=50)
     currency = models.CharField(max_length=10)
     iban = models.CharField(max_length=34)
@@ -66,3 +55,20 @@ class Wallet(models.Model):
     def __str__(self):
         return f"{self.wallet_id} ({self.currency})"
     
+
+class Transaction(models.Model):
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="transactions")
+
+    from_currency = models.CharField(max_length=10)   # np. "USD"
+    to_currency = models.CharField(max_length=10)     # np. "PLN"
+
+    # transaction data
+    amount = models.DecimalField(max_digits=12, decimal_places=2)  # amount in source currency
+    rate = models.DecimalField(max_digits=10, decimal_places=4) # exchange rate
+
+    # exchange result, form now its editable, need to turn off later
+    result_amount = models.DecimalField(max_digits=12, decimal_places=2, editable=True) 
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.user.username}: {self.amount} {self.from_currency} → {self.to_currency} @ {self.rate}"
