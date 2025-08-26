@@ -1,0 +1,24 @@
+[33m8f2335a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/NBP_View_ORM_tests[m[33m, [m[1;31morigin/HEAD[m[33m)[m Creating a currency exchange rate view and adding the exchange rates.html template to the application directory. Adding models to the admin panel. Creating test accounts and feeding them with data from the previous JSON files.
+[33m3093e35[m Merge pull request #10 from infoshareacademy/feat/BB-32-create-views-forms-templates
+[33m759a6a4[m[33m ([m[1;31morigin/feat/BB-32-create-views-forms-templates[m[33m)[m initial admin configuration
+[33mca17dfe[m create models, views, forms and templates for register, login, edit and log out for user
+[33m5c9ca06[m Merge pull request #9 from infoshareacademy/fix/minor-structure-fixes
+[33m0cfa043[m[33m ([m[1;31morigin/fix/minor-structure-fixes[m[33m)[m fix structure
+[33m908de9b[m fix structure
+[33md7d9bef[m Merge pull request #8 from infoshareacademy/development
+[33m54cc2a0[m[33m ([m[1;31morigin/development[m[33m)[m I've configured Django – the main project file is now located at \jpydzr8-backend-brokers\backend_brokers. You can start the server and go to http://127.0.0.1:8000/core/. I've created a 'logic' folder; you'll find .py and .json files there. I've read that other files, like readme, requirements, pyproject.toml, and gitignore, should be kept in the main project file.
+[33m74cf707[m Merge pull request #6 from infoshareacademy/development
+[33m03c9f78[m Implementation of currency transfer function
+[33mbd14625[m Merge pull request #5 from infoshareacademy/development
+[33mb846147[m[33m ([m[1;32mdevelopment[m[33m)[m 1. Zmieniłem strukturę pliku wallets.json 2. Zaktualizowałem do niej klasę Wallet  3. Dodałem funkcję usunięcia portfela 4. Dodałem fukncję zmiany rodzaju konta. 5. Wszystkie funkcje w main menu i user menu połączyłem i działąją. Trzeba je zabezpieczyć przed błędami.
+[33me6bfa4f[m I added user menu. Combined the Wallet class into one.
+[33md4596bd[m Merge pull request #4 from infoshareacademy/feat/BB-10-wallet-class
+[33m40da0be[m Merge pull request #3 from infoshareacademy/funkcjonalnosc_rejestracji_i_logowania
+[33med1fe55[m[33m ([m[1;31morigin/funkcjonalnosc_rejestracji_i_logowania[m[33m)[m Przesyłam klase user_registration.
+[33m52440e6[m[33m ([m[1;31morigin/feat/BB-10-wallet-class[m[33m)[m Wallet: create new wallet, check balance, transfer funds.
+[33m22ff1d7[m Merge pull request #2 from infoshareacademy/feat/BB-13-add-code-formatter
+[33m1db0e62[m[33m ([m[1;31morigin/feat/BB-13-add-code-formatter[m[33m)[m feat(BB-13): install and configure black code formatter
+[33mf863dc8[m Merge pull request #1 from infoshareacademy/feat/BB-7-User-class
+[33m954fed5[m[33m ([m[1;31morigin/feat/BB-7-User-class[m[33m)[m feat(BB-7): add User class
+[33m6e4ac59[m feat(BB-7): (work in progress) dodanie klasy User
+[33m4aa4a50[m Initial commit
