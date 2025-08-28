@@ -57,5 +57,5 @@ def profile_edit(request):
 def exchange_rates_view(request):
     nbp = NBPClient()
     rates = nbp.rates
-    rates_sorted = {k: round(v, 2) for k, v in sorted(rates.items()) if k != "PLN"}
+    rates_sorted = {k: round(v, 3) for k, v in sorted(rates.items()) if k != "PLN"}
     return render(request, "backend_brokers/exchange_rates.html", {"rates": rates_sorted})
