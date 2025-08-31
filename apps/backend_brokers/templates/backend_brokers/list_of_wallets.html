@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <title>Lista portfeli</title></head>
+<body>
+
+  <a href="{% url 'profile_edit' %}">Edytuj profil</a> |   <a href="{% url 'wallets' %}">Lista portfeli</a> |   <a href="{% url 'exchange_rates' %}">Tabela kursów </a>
+
+<h2>Twoje portfele</h2>
+<ul>
+    {% for wallet in wallets %}
+    <li>
+        <a href="{% url 'wallet_transactions' wallet.id %}"> Posiadasz {{ wallet.balance }} {{ wallet.currency }} na rachunku {{ wallet.iban }} (identyfikator portfela to: {{ wallet.wallet_id }}) </a>
+
+    </li>
+    {% empty %}
+    <li>Brak portfeli</li>
+    {% endfor %}
+</ul>
+
+
+<div class="wallet creation"
+<p> Dla konta typu {{ request.user.profile.get_account_type_display }} możesz założyć {{ request.user.profile.wallet_limit }} portfeli. </p>
+<p> Dostępne portfele: {{ wallets_remaining }}</p>
+
+<a href="{% url 'add_wallet' %}">Dodaj nowy portfel</a>
+</div>
+
+
+<p style="margin-top: 16px;">
+    <a href="{% url 'profile_edit' %}">Edytuj profil</a> |
+<form action="{% url 'logout' %}" method="post" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" style="background:none; border:none; color:#00f; cursor:pointer; text-decoration:underline;">
+        Wyloguj
+    </button>
+</form>
+</p>
+</body>
+</html>

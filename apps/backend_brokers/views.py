@@ -1,9 +1,19 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from .forms import RegisterForm, UserEditForm, ProfileEditForm
-from .models import Profile
+from .forms import (
+    RegisterForm,
+    UserEditForm,
+    ProfileEditForm,
+    AddWalletForm,
+    WalletDeleteForm,
+    TransferForm,
+)
+from .models import Profile, Wallet, Transaction
 from apps.backend_brokers.nbp_client import NBPClient
+from schwifty import IBAN
+import random
+from decimal import Decimal
 
 
 def home(request):
@@ -58,4 +68,151 @@ def exchange_rates_view(request):
     nbp = NBPClient()
     rates = nbp.rates
     rates_sorted = {k: round(v, 3) for k, v in sorted(rates.items()) if k != "PLN"}
-    return render(request, "backend_brokers/exchange_rates.html", {"rates": rates_sorted})
+    return render(
+        request, "backend_brokers/exchange_rates.html", {"rates": rates_sorted}
+    )
+
+
+@login_required
+def wallet(request):
+    wallets = Wallet.objects.filter(user_id=request.user.id)
+    wallets_count = wallets.count()
+    wallets_remaining = request.user.profile.wallet_limit - wallets_count
+    return render(
+        request,
+        "backend_brokers/list_of_wallets.html",
+        {
+            "wallets": wallets,
+            "wallets_count": wallets_count,
+            "wallets_remaining": wallets_remaining,
+        },
+    )
+
+
+@login_required
+def add_wallet(request):
+    wallets_remaining = (
+        request.user.profile.wallet_limit
+        - Wallet.objects.filter(user_id=request.user.id).count()
+    )
+    if wallets_remaining <= 0:  # testing if walet limit not exceeded
+        return render(request, "backend_brokers/too_many_wallets.html")
+    if request.method == "POST":
+        form = AddWalletForm(request.POST)
+        if form.is_valid():
+            wallet = form.save(commit=False)
+            wallet.user_id = request.user.id
+            while True:  # makes sure there are no duplicate wallet ids
+                wallet_id = str(random.randint(1, 999999999)).zfill(
+                    9
+                )  # generates random id and adds leading zeros up to 9 digits
+                if wallet_id not in Wallet.objects.filter(wallet_id=wallet_id):
+                    break
+            wallet.iban = IBAN.generate(
+                "PL", bank_code="252", account_code=wallet_id
+            )  # generates valid IBAN, includes wallet_id
+            wallet.wallet_id = wallet_id
+            wallet.save()
+            return redirect("wallets")
+    else:
+        form = AddWalletForm()
+    return render(request, "backend_brokers/add_wallet.html", {"form": form})
+
+
+@login_required
+def wallet_properies_and_history(request, wallet_id):
+    wallet = get_object_or_404(Wallet, id=wallet_id, user=request.user.id)
+    iban = wallet.iban
+
+    transactions = Transaction.objects.filter(
+        source_iban=iban
+    ) | Transaction.objects.filter(
+        destination_iban=iban
+    )  # list of all transactions containing given wallet iban
+
+    transactions = transactions.order_by(
+        "-created_at"
+    )  # newsest transactions at the top
+
+    return render(
+        request,
+        "backend_brokers/wallet.html",
+        {"wallet": wallet, "transactions": transactions},
+    )
+
+
+@login_required
+def delete_wallet(
+    request, wallet_id
+):  # access should be impossible directely (link not active) if there are any funds left. For safety, additional test is performed in case indirect access to this routine.
+    wallet = get_object_or_404(Wallet, id=wallet_id, user=request.user.id)
+
+    if wallet.balance != 0:  # the test
+        return render(
+            request,
+            "backend_brokers/wallet_delete_blocked.html",
+            {
+                "wallet": wallet,
+                "message": "Portfel nie może zostać usunięty, ponieważ są na nim środki. Opróżnij konto przed jego usunięciem.",
+            },
+        )
+
+    if request.method == "POST":
+        form = WalletDeleteForm(request.POST)
+        if form.is_valid():
+            wallet.delete()
+            return redirect("wallets")
+    else:
+        form = WalletDeleteForm()
+
+    return render(
+        request,
+        "backend_brokers/wallet_confirm_delete.html",
+        {"form": form, "wallet": wallet},
+    )
+
+
+def transfer_funds(request):
+    CURRENCY_RATES = NBPClient().rates  # TODO - migrate currency rates to DB?
+    if request.method == "POST":
+        form = TransferForm(request.user, request.POST)
+        if form.is_valid():
+            source = form.cleaned_data["source_wallet"]
+            destination = form.cleaned_data["destination_wallet"]
+            amount = form.cleaned_data["amount"]
+
+            if source == destination:
+                form.add_error(None, "Nie możesz przelać środków na to samo konto.")
+            elif source.balance < amount:
+                form.add_error("amount", "Brak wystarczających środków.")
+            elif 0 > amount:
+                form.add_error("amount", "Nie można wykonać przelewu na ujemną kwotę.")
+            else:
+                source_rate = CURRENCY_RATES.get(source.currency, 1)
+                destination_rate = CURRENCY_RATES.get(destination.currency, 1)
+                exchange_rate = source_rate / destination_rate
+                converted_amount = amount * Decimal(str(exchange_rate))
+
+                # Balance updates
+                source.balance -= amount
+                destination.balance += converted_amount
+                source.save()
+                destination.save()
+
+                # Save details to DB
+                Transaction.objects.create(
+                    user=request.user.profile,
+                    source_iban=source.iban,
+                    from_currency=source.currency,
+                    to_currency=destination.currency,
+                    destination_iban=destination.iban,
+                    amount=amount,
+                    rate=exchange_rate,
+                    result_amount=converted_amount,
+                )
+
+                return redirect("wallets")
+    else:
+        form = TransferForm(request.user)
+
+    return render(request, "backend_brokers/transfer_form.html", {"form": form})

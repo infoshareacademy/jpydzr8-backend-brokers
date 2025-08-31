@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Zlecono usunięcie portfela</title>
+</head>
+<body>
+
+  <a href="{% url 'profile_edit' %}">Edytuj profil</a> |   <a href="{% url 'wallets' %}">Lista portfeli</a> |   <a href="{% url 'exchange_rates' %}">Tabela kursów </a>
+
+
+<h2>Potwierdź usunięcie portfela: {{ wallet.wallet_id }}</h2>
+<p>Saldo: {{ wallet.balance }}</p>
+<p>Aby usunąć konto, wpisz polecenie <i>usuń</i> w poniższe pole. Tej czynności nie można cofnąć.</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-danger">Usuń portfel</button>
+</form>
+
+
+</body>
+</html>

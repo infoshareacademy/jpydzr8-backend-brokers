@@ -2,13 +2,14 @@
 <html lang="pl">
 <head><meta charset="utf-8"><title>Profil</title></head>
 <body>
+
+  <a href="{% url 'profile_edit' %}">Edytuj profil</a> |   <a href="{% url 'wallets' %}">Lista portfeli</a> |   <a href="{% url 'exchange_rates' %}">Tabela kursów </a>
+
   <h1>Twój profil</h1>
 
   <h3>Dane logowania (User)</h3>
   <p><b>Username:</b> {{ request.user.username }}</p>
-  <p><b>Email:</b> {{ request.user.email }}</p>
-  <p><b>Imię:</b> {{ request.user.first_name }}</p>
-  <p><b>Nazwisko:</b> {{ request.user.last_name }}</p>
+
 
   <h3>Dane profilu (Profile)</h3>
   <p><b>Telefon:</b> {{ request.user.profile.phone_number|default:"—" }}</p>
@@ -17,6 +18,8 @@
   <p><b>Data urodzenia:</b> {{ request.user.profile.date_of_birth|date:"Y-m-d"|default:"—" }}</p>
   <p><b>Limity:</b> transakcje {{ request.user.profile.transaction_limit }},
      portfele {{ request.user.profile.wallet_limit }}</p>
+
+  <p><a href="{% url 'wallets' %}">Twoje portfele</a></p>
 
   <p style="margin-top: 16px;">
     <a href="{% url 'profile_edit' %}">Edytuj profil</a> |

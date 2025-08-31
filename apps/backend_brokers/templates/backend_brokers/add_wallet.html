@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Strona główna</title>
+    <title>Add new wallet</title>
 </head>
 
   <a href="{% url 'profile_edit' %}">Edytuj profil</a> |   <a href="{% url 'wallets' %}">Lista portfeli</a> |   <a href="{% url 'exchange_rates' %}">Tabela kursów </a>
 
-<body>
-    <h1>Witaj w mojej aplikacji Django!</h1>
-    <h1>Hello World! It' Backend Brokers here!</h1>
-    <p>Backend Brokers</p>
+
+<h2>Dodaj nowy portfel</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Dodaj</button>
+</form>
+
 </body>
 </html>

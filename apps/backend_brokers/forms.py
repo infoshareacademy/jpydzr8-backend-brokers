@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Profile
+from .models import Profile, Wallet
 
 
 class RegisterForm(UserCreationForm):
@@ -68,3 +68,38 @@ class ProfileEditForm(forms.ModelForm):
         widgets = {
             "date_of_birth": forms.DateInput(attrs={"type": "date"}),
         }
+
+
+class AddWalletForm(forms.ModelForm):
+    class Meta:
+        model = Wallet
+        fields = ["currency"]
+        widgets = {
+            "Proszę wybrać walutę": forms.Select(attrs={"class": "form-control"}),
+        }
+
+
+class WalletDeleteForm(forms.Form):
+    confirmation = forms.CharField(label="Potwierdź usunięcie", max_length=10)
+
+    def clean_confirmation(self):
+        value = self.cleaned_data["confirmation"]
+        if value.strip().lower() != "usuń":
+            raise forms.ValidationError("Aby usunąć portfel, wpisz dokładnie: 'usuń'")
+        return value
+
+
+class TransferForm(forms.Form):
+    source_wallet = forms.ModelChoiceField(
+        queryset=Wallet.objects.none(), label="Konto źródłowe"
+    )
+    destination_wallet = forms.ModelChoiceField(
+        queryset=Wallet.objects.none(), label="Konto docelowe"
+    )
+    amount = forms.DecimalField(max_digits=10, decimal_places=4, label="Kwota")
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        user_wallets = Wallet.objects.filter(user_id=user.id)
+        self.fields["source_wallet"].queryset = user_wallets
+        self.fields["destination_wallet"].queryset = user_wallets

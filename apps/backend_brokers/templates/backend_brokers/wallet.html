@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+  <a href="{% url 'profile_edit' %}">Edytuj profil</a> |   <a href="{% url 'wallets' %}">Lista portfeli</a> |   <a href="{% url 'exchange_rates' %}">Tabela kursów </a>
+
+<H1><p>Twój portfel {{ wallet.wallet_id }}</p></H1>
+
+<p>Waluta: {{ wallet.currency }}</p>
+
+<p>Stan konta: {{ wallet.balance }}</p>
+
+<p>Numer konta do przelewu: {{ wallet.iban }}</p>
+
+---------------------------------------
+<h2>Historia transakcji dla portfela: {{ wallet.name }}</h2>
+<!--<p>IBAN: {{ wallet.iban }}</p>-->
+
+{% if transactions %}
+    <ul>
+        {% for tx in transactions %}
+            <li>
+                <strong>{{ tx.created_at|date:"Y-m-d H:i" }}</strong>
+                {{ tx.amount }} {{ tx.from_currency }} z konta {{ tx.source_iban }} wymieniono na {{ tx.result_amount }} {{ tx.to_currency }} po kursie {{ tx.rate }} i przelano na konto {{ tx.destination_iban }}<br>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Brak transakcji dla tego portfela.</p>
+{% endif %}
+---------------------------------------
+
+<h2><a href="{% url 'transfer_funds' %}" >Zleć wymianę walut.</a></h2>
+---------------------------------------
+<h3>Usuwanie portfela</h3>
+{% if wallet.balance == 0 %}
+    <form action="{% url 'delete_wallet' wallet.id %}" method="get">
+        <button type="submit" class="btn btn-danger">Usuń portfel</button>
+    </form>
+{% else %}
+    <p style="color: gray;">Ten portfel nie może zostać usunięty ponieważ nie jest pusty. Saldo musi wynosić 0.00</p>
+{% endif %}
+
+
+</body>
+</html>
+
