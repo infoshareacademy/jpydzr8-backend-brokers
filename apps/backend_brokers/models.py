@@ -1,3 +1,6 @@
+from email.policy import default
+from random import choices
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -45,29 +48,72 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name} ({self.user.username})"
 
+
 class Wallet(models.Model):
+    SELECTABLE_CURRENCIES = [
+        ("EUR", "euro"),
+        ("USD", "dolar amerykański"),
+        ("AUD", "dolar australijski"),
+        ("BGN", "lew (Bułgaria)"),
+        ("BRL", "real (Brazylia)"),
+        ("CAD", "dolar kanadyjski"),
+        ("CHF", "frank szwajcarski"),
+        ("CLP", "peso chilijskie"),
+        ("CNY", "yuan renminbi (Chiny)"),
+        ("CZK", "korona czeska"),
+        ("DKK", "korona duńska"),
+        ("GBP", "funt szterling"),
+        ("HKD", "dolar Hongkongu"),
+        ("HUF", "forint (Węgry)"),
+        ("IDR", "rupia indonezyjska"),
+        ("ILS", "nowy izraelski szekel"),
+        ("INR", "rupia indyjska"),
+        ("ISK", "korona islandzka"),
+        ("JPY", "jen (Japonia)"),
+        ("KRW", "won południowokoreański"),
+        ("MXN", "peso meksykańskie"),
+        ("MYR", "ringgit (Malezja)"),
+        ("NOK", "korona norweska"),
+        ("NZD", "dolar nowozelandzki"),
+        ("PHP", "peso filipińskie"),
+        ("RON", "lej rumuński"),
+        ("SEK", "korona szwedzka"),
+        ("SGD", "dolar singapurski"),
+        ("THB", "bat (Tajlandia)"),
+        ("TRY", "lira turecka"),
+        ("UAH", "hrywna (Ukraina)"),
+        ("XDR", "SDR (MFW)"),
+        ("ZAR", "rand (Republika Południowej Afryki)"),
+    ]  # Added to automate drop-down lists
     user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="wallets")
-    wallet_id = models.CharField(max_length=50)
-    currency = models.CharField(max_length=10)
-    iban = models.CharField(max_length=34)
-    balance = models.FloatField(default=0)
+    wallet_id = models.CharField(max_length=50, unique=True)
+    currency = models.CharField(max_length=10, choices=SELECTABLE_CURRENCIES)
+    iban = models.CharField(max_length=34, unique=True)
+    balance = models.DecimalField(
+        max_digits=12, decimal_places=4, default=0.00
+    )  # Adjusted per Django Antipatterns
 
     def __str__(self):
-        return f"{self.wallet_id} ({self.currency})"
-    
+        return f"Portfel {self.wallet_id} ({self.balance} {self.currency})"
+
 
 class Transaction(models.Model):
-    user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="transactions")
-
-    from_currency = models.CharField(max_length=10)   # np. "USD"
-    to_currency = models.CharField(max_length=10)     # np. "PLN"
+    user = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="transactions"
+    )
+    source_iban = models.CharField(max_length=34, default="test")
+    from_currency = models.CharField(max_length=10)  # np. "USD"
+    to_currency = models.CharField(max_length=10)  # np. "PLN"
+    destination_iban = models.CharField(max_length=34, default="test")
 
     # transaction data
-    amount = models.DecimalField(max_digits=12, decimal_places=2)  # amount in source currency
-    rate = models.DecimalField(max_digits=10, decimal_places=4) # exchange rate
+    amount = models.DecimalField(
+        max_digits=12, decimal_places=4
+    )  # amount in source currency
+    rate = models.DecimalField(max_digits=10, decimal_places=4)  # exchange rate
 
     # exchange result, form now its editable, need to turn off later
-    result_amount = models.DecimalField(max_digits=12, decimal_places=2, editable=True) 
+    result_amount = models.DecimalField(max_digits=12, decimal_places=2, editable=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
