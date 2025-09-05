@@ -1,5 +1,5 @@
 import requests
-
+from .models import ExchangeRate
 
 class NBPClient:
     def __init__(self):
@@ -16,10 +16,10 @@ class NBPClient:
             data = response.json()
             rates = {rate["code"]: rate["mid"] for rate in data[0]["rates"]}
             rates["PLN"] = 1.0  # Set PLN rate to 1 for easier calculations
-            return rates
+            return rates, data[0]["effectiveDate"]
         except requests.exceptions.RequestException as e:
             print(f"Error fetching exchange rates: {e}")
-            return None
+            return None, None
 
     def show_current_rates(self):
         """
@@ -34,3 +34,17 @@ class NBPClient:
                 continue
             output += f"• 1 {currency} = {rate:.4f} PLN\n"
         return output
+    
+    def save_to_db(self):
+        if not self.rates[0]:
+            return
+
+        rates, effective_date = self.rates
+        for code, value in rates.items():
+            if code == "PLN":
+                continue
+            ExchangeRate.objects.get_or_create(
+                date=effective_date,
+                currency=code,
+                defaults={'rate': value}
+            )

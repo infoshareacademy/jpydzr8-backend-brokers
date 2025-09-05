@@ -66,10 +66,12 @@ def profile_edit(request):
 
 def exchange_rates_view(request):
     nbp = NBPClient()
-    rates = nbp.rates
+    nbp.save_to_db()
+    rates, effective_date = nbp.rates
     rates_sorted = {k: round(v, 3) for k, v in sorted(rates.items()) if k != "PLN"}
     return render(
-        request, "backend_brokers/exchange_rates.html", {"rates": rates_sorted}
+        request, "backend_brokers/exchange_rates.html",
+        {"rates": rates_sorted, "date": effective_date},
     )
 
 
