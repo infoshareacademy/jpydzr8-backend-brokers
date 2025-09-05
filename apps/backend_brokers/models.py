@@ -118,3 +118,16 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.user.user.username}: {self.amount} {self.from_currency} → {self.to_currency} @ {self.rate}"
+
+
+class ExchangeRate(models.Model):
+    date = models.DateField()
+    currency = models.CharField(max_length=3)
+    rate = models.DecimalField(max_digits=12, decimal_places=6)
+
+    class Meta:
+        unique_together = ('date', 'currency') 
+        ordering = ['-date', 'currency']
+
+    def __str__(self):
+        return f"{self.date} - {self.currency}: {self.rate}"

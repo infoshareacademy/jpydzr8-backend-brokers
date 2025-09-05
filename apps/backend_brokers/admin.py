@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Wallet, Transaction
+from .models import Profile, Wallet, Transaction, ExchangeRate
 
 
 class WalletInline(admin.TabularInline):
@@ -19,3 +19,10 @@ class TransactionAdmin(admin.ModelAdmin):
     list_display = ("user", "from_currency", "to_currency", "amount", "rate", "result_amount", "created_at")
     search_fields = ("user__user__username", "from_currency", "to_currency")
     list_filter = ("created_at", "from_currency", "to_currency")
+
+
+@admin.register(ExchangeRate)
+class ExchangeRateAdmin(admin.ModelAdmin):
+    list_display = ('date', 'currency', 'rate')
+    list_filter = ('date', 'currency')
+    search_fields = ('currency',)
