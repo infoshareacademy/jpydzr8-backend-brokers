@@ -13,6 +13,7 @@ class NBPClient:
         try:
             response = requests.get(self.base_url)
             response.raise_for_status()
+            print("API connection successfull")
             data = response.json()
             rates = {rate["code"]: rate["mid"] for rate in data[0]["rates"]}
             rates["PLN"] = 1.0  # Set PLN rate to 1 for easier calculations
