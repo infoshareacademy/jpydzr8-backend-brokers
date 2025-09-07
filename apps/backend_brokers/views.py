@@ -134,6 +134,12 @@ def add_wallet(request):
 
 @login_required
 def wallet_properies_and_history(request, wallet_id):
+    now = timezone.now()
+    transactions_current_month = Transaction.objects.filter(
+        user_id=request.user.id, created_at__year=now.year, created_at__month=now.month
+    )
+    transactions_count = transactions_current_month.count()
+    transactions_remaining = request.user.profile.transaction_limit - transactions_count
     wallet = get_object_or_404(Wallet, id=wallet_id, user=request.user.id)
     iban = wallet.iban
 
@@ -150,7 +156,11 @@ def wallet_properies_and_history(request, wallet_id):
     return render(
         request,
         "backend_brokers/wallet.html",
-        {"wallet": wallet, "transactions": transactions},
+        {
+            "wallet": wallet,
+            "transactions": transactions,
+            "transactions_remaining": transactions_remaining,
+        },
     )
 
 
