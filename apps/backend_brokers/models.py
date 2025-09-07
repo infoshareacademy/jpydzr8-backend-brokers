@@ -85,13 +85,16 @@ class Wallet(models.Model):
         ("XDR", "SDR (MFW)"),
         ("ZAR", "rand (Republika Południowej Afryki)"),
     ]  # Added to automate drop-down lists
-    user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="wallets")
+    user = models.ForeignKey(
+        Profile, on_delete=models.DO_NOTHING, related_name="wallets"
+    )
     wallet_id = models.CharField(max_length=50, unique=True)
     currency = models.CharField(max_length=10, choices=SELECTABLE_CURRENCIES)
     iban = models.CharField(max_length=34, unique=True)
     balance = models.DecimalField(
         max_digits=12, decimal_places=4, default=0.00
     )  # Adjusted per Django Antipatterns
+    wallet_status = models.CharField(max_length=50, default="active")
 
     def __str__(self):
         return f"Portfel {self.wallet_id} ({self.balance} {self.currency})"
@@ -126,8 +129,8 @@ class ExchangeRate(models.Model):
     rate = models.DecimalField(max_digits=12, decimal_places=6)
 
     class Meta:
-        unique_together = ('date', 'currency') 
-        ordering = ['-date', 'currency']
+        unique_together = ("date", "currency")
+        ordering = ["-date", "currency"]
 
     def __str__(self):
         return f"{self.date} - {self.currency}: {self.rate}"

@@ -9,11 +9,12 @@ from .forms import (
     WalletDeleteForm,
     TransferForm,
 )
-from .models import Profile, Wallet, Transaction,  ExchangeRate
+from .models import Profile, Wallet, Transaction, ExchangeRate
 from apps.backend_brokers.nbp_client import NBPClient
 from schwifty import IBAN
 import random
 from decimal import Decimal
+from django.utils import timezone
 
 
 def home(request):
@@ -70,16 +71,23 @@ def exchange_rates_view(request):
     rates, effective_date = nbp.rates
     rates_sorted = {k: round(v, 3) for k, v in sorted(rates.items()) if k != "PLN"}
     return render(
-        request, "backend_brokers/exchange_rates.html",
+        request,
+        "backend_brokers/exchange_rates.html",
         {"rates": rates_sorted, "date": effective_date},
     )
 
 
 @login_required
 def wallet(request):
+    now = timezone.now()
     wallets = Wallet.objects.filter(user_id=request.user.id)
     wallets_count = wallets.count()
     wallets_remaining = request.user.profile.wallet_limit - wallets_count
+    transactions_current_month = Transaction.objects.filter(
+        user_id=request.user.id, created_at__year=now.year, created_at__month=now.month
+    )
+    transactions_count = transactions_current_month.count()
+    transactions_remaining = request.user.profile.transaction_limit - transactions_count
     return render(
         request,
         "backend_brokers/list_of_wallets.html",
@@ -87,6 +95,9 @@ def wallet(request):
             "wallets": wallets,
             "wallets_count": wallets_count,
             "wallets_remaining": wallets_remaining,
+            "transactions_current_month": transactions_current_month,
+            "transactions_count": transactions_count,
+            "transactions_remaining": transactions_remaining,
         },
     )
 
@@ -97,7 +108,7 @@ def add_wallet(request):
         request.user.profile.wallet_limit
         - Wallet.objects.filter(user_id=request.user.id).count()
     )
-    if wallets_remaining <= 0:  # testing if walet limit not exceeded
+    if wallets_remaining <= 0:  # testing if wallet limit not exceeded
         return render(request, "backend_brokers/too_many_wallets.html")
     if request.method == "POST":
         form = AddWalletForm(request.POST)
@@ -195,7 +206,9 @@ def transfer_funds(request):
                 print(source.currency)
                 source_rate = ExchangeRate.objects.get(currency=source.currency).rate
                 print(source_rate)
-                destination_rate = ExchangeRate.objects.get(currency=destination.currency).rate
+                destination_rate = ExchangeRate.objects.get(
+                    currency=destination.currency
+                ).rate
                 print(destination_rate)
                 exchange_rate = source_rate / destination_rate
                 converted_amount = amount * Decimal(str(exchange_rate))
