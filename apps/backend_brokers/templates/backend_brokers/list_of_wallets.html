@@ -21,8 +21,8 @@
 
 
 <div class="wallet creation"
-<p> Dla konta typu {{ request.user.profile.get_account_type_display }} możesz założyć {{ request.user.profile.wallet_limit }} portfeli. </p>
-<p> Dostępne portfele: {{ wallets_remaining }}</p>
+<p> Dla konta typu {{ request.user.profile.get_account_type_display }} możesz założyć {{ request.user.profile.wallet_limit }} portfeli. Dostępne portfele: {{ wallets_remaining }}</p>
+<p> Dla konta typu {{ request.user.profile.get_account_type_display }} możesz wykonać {{ request.user.profile.transaction_limit }} transakcji w miesiącu kalendarzowym. Pozostały limit: {{ transactions_remaining }}</p>
 
 <a href="{% url 'add_wallet' %}">Dodaj nowy portfel</a>
 </div>

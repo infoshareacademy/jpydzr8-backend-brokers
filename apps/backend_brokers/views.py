@@ -9,11 +9,12 @@ from .forms import (
     WalletDeleteForm,
     TransferForm,
 )
-from .models import Profile, Wallet, Transaction
+from .models import Profile, Wallet, Transaction, ExchangeRate
 from apps.backend_brokers.nbp_client import NBPClient
 from schwifty import IBAN
 import random
 from decimal import Decimal
+from django.utils import timezone
 
 
 def home(request):
@@ -70,16 +71,23 @@ def exchange_rates_view(request):
     rates, effective_date = nbp.rates
     rates_sorted = {k: round(v, 3) for k, v in sorted(rates.items()) if k != "PLN"}
     return render(
-        request, "backend_brokers/exchange_rates.html",
+        request,
+        "backend_brokers/exchange_rates.html",
         {"rates": rates_sorted, "date": effective_date},
     )
 
 
 @login_required
 def wallet(request):
-    wallets = Wallet.objects.filter(user_id=request.user.id)
+    now = timezone.now()
+    wallets = Wallet.objects.filter(user_id=request.user.id, wallet_status="active")
     wallets_count = wallets.count()
     wallets_remaining = request.user.profile.wallet_limit - wallets_count
+    transactions_current_month = Transaction.objects.filter(
+        user_id=request.user.id, created_at__year=now.year, created_at__month=now.month
+    )
+    transactions_count = transactions_current_month.count()
+    transactions_remaining = request.user.profile.transaction_limit - transactions_count
     return render(
         request,
         "backend_brokers/list_of_wallets.html",
@@ -87,6 +95,9 @@ def wallet(request):
             "wallets": wallets,
             "wallets_count": wallets_count,
             "wallets_remaining": wallets_remaining,
+            "transactions_current_month": transactions_current_month,
+            "transactions_count": transactions_count,
+            "transactions_remaining": transactions_remaining,
         },
     )
 
@@ -97,7 +108,7 @@ def add_wallet(request):
         request.user.profile.wallet_limit
         - Wallet.objects.filter(user_id=request.user.id).count()
     )
-    if wallets_remaining <= 0:  # testing if walet limit not exceeded
+    if wallets_remaining <= 0:  # testing if wallet limit not exceeded
         return render(request, "backend_brokers/too_many_wallets.html")
     if request.method == "POST":
         form = AddWalletForm(request.POST)
@@ -114,6 +125,7 @@ def add_wallet(request):
                 "PL", bank_code="252", account_code=wallet_id
             )  # generates valid IBAN, includes wallet_id
             wallet.wallet_id = wallet_id
+            wallet.wallet_status = "active"
             wallet.save()
             return redirect("wallets")
     else:
@@ -123,7 +135,15 @@ def add_wallet(request):
 
 @login_required
 def wallet_properies_and_history(request, wallet_id):
-    wallet = get_object_or_404(Wallet, id=wallet_id, user=request.user.id)
+    now = timezone.now()
+    transactions_current_month = Transaction.objects.filter(
+        user_id=request.user.id, created_at__year=now.year, created_at__month=now.month
+    )
+    transactions_count = transactions_current_month.count()
+    transactions_remaining = request.user.profile.transaction_limit - transactions_count
+    wallet = get_object_or_404(
+        Wallet, id=wallet_id, user=request.user.id, wallet_status="active"
+    )
     iban = wallet.iban
 
     transactions = Transaction.objects.filter(
@@ -139,7 +159,11 @@ def wallet_properies_and_history(request, wallet_id):
     return render(
         request,
         "backend_brokers/wallet.html",
-        {"wallet": wallet, "transactions": transactions},
+        {
+            "wallet": wallet,
+            "transactions": transactions,
+            "transactions_remaining": transactions_remaining,
+        },
     )
 
 
@@ -162,7 +186,8 @@ def delete_wallet(
     if request.method == "POST":
         form = WalletDeleteForm(request.POST)
         if form.is_valid():
-            wallet.delete()
+            wallet.wallet_status = "deleted"
+            wallet.save()
             return redirect("wallets")
     else:
         form = WalletDeleteForm()
@@ -175,7 +200,7 @@ def delete_wallet(
 
 
 def transfer_funds(request):
-    CURRENCY_RATES = NBPClient().rates  # TODO - migrate currency rates to DB?
+    # CURRENCY_RATES = NBPClient().rates  # TODO - migrate currency rates to DB?
     if request.method == "POST":
         form = TransferForm(request.user, request.POST)
         if form.is_valid():
@@ -190,8 +215,15 @@ def transfer_funds(request):
             elif 0 > amount:
                 form.add_error("amount", "Nie można wykonać przelewu na ujemną kwotę.")
             else:
-                source_rate = CURRENCY_RATES.get(source.currency, 1)
-                destination_rate = CURRENCY_RATES.get(destination.currency, 1)
+                # source_rate = CURRENCY_RATES.get(source.currency, 1)
+                # destination_rate = CURRENCY_RATES.get(destination.currency, 1)
+                print(source.currency)
+                source_rate = ExchangeRate.objects.get(currency=source.currency).rate
+                print(source_rate)
+                destination_rate = ExchangeRate.objects.get(
+                    currency=destination.currency
+                ).rate
+                print(destination_rate)
                 exchange_rate = source_rate / destination_rate
                 converted_amount = amount * Decimal(str(exchange_rate))
 

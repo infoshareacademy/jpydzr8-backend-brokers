@@ -34,7 +34,17 @@
 {% endif %}
 ---------------------------------------
 
-<h2><a href="{% url 'transfer_funds' %}" >Zleć wymianę walut.</a></h2>
+
+ <h3>Wymiana walut</h3>
+{% if transactions_remaining == 0 %}
+
+  <p style="color: gray;">Limit transakcji na ten miesiąc został wyczerpany. Przejdź na wyższy plan lub poczekaj do kolejnego miesiąca.</p>
+
+  {% else %}
+    <h2><a href="{% url 'transfer_funds' %}" >Zleć wymianę walut.</a></h2><BR>
+  Pozostało {{ transactions_remaining }} dostępnych transakcji w tym miesiącu. <BR>
+{% endif %}
+
 ---------------------------------------
 <h3>Usuwanie portfela</h3>
 {% if wallet.balance == 0 %}
