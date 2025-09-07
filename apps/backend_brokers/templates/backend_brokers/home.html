@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <title>Strona główna</title>
 </head>
-
-  <a href="{% url 'profile_edit' %}">Edytuj profil</a> |   <a href="{% url 'wallets' %}">Lista portfeli</a> |   <a href="{% url 'exchange_rates' %}">Tabela kursów </a>
-
+  {% if user.is_authenticated and user.profile %}
+    <a href="{% url 'profile_edit' %}">Edytuj profil</a> | 
+    <a href="{% url 'wallets' %}">Lista portfeli</a> | 
+    <a href="{% url 'exchange_rates' %}">Tabela kursów</a>
+  {% endif %} 
 <body>
     <h1>Witaj w mojej aplikacji Django!</h1>
     <h1>Hello World! It' Backend Brokers here!</h1>
