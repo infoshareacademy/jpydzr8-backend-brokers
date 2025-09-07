@@ -80,7 +80,7 @@ def exchange_rates_view(request):
 @login_required
 def wallet(request):
     now = timezone.now()
-    wallets = Wallet.objects.filter(user_id=request.user.id)
+    wallets = Wallet.objects.filter(user_id=request.user.id, wallet_status="active")
     wallets_count = wallets.count()
     wallets_remaining = request.user.profile.wallet_limit - wallets_count
     transactions_current_month = Transaction.objects.filter(
@@ -125,6 +125,7 @@ def add_wallet(request):
                 "PL", bank_code="252", account_code=wallet_id
             )  # generates valid IBAN, includes wallet_id
             wallet.wallet_id = wallet_id
+            wallet.wallet_status = "active"
             wallet.save()
             return redirect("wallets")
     else:
@@ -140,7 +141,9 @@ def wallet_properies_and_history(request, wallet_id):
     )
     transactions_count = transactions_current_month.count()
     transactions_remaining = request.user.profile.transaction_limit - transactions_count
-    wallet = get_object_or_404(Wallet, id=wallet_id, user=request.user.id)
+    wallet = get_object_or_404(
+        Wallet, id=wallet_id, user=request.user.id, wallet_status="active"
+    )
     iban = wallet.iban
 
     transactions = Transaction.objects.filter(
@@ -183,7 +186,8 @@ def delete_wallet(
     if request.method == "POST":
         form = WalletDeleteForm(request.POST)
         if form.is_valid():
-            wallet.delete()
+            wallet.wallet_status = "deleted"
+            wallet.save()
             return redirect("wallets")
     else:
         form = WalletDeleteForm()

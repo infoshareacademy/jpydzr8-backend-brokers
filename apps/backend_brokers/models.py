@@ -86,7 +86,10 @@ class Wallet(models.Model):
         ("ZAR", "rand (Republika Południowej Afryki)"),
     ]  # Added to automate drop-down lists
     user = models.ForeignKey(
-        Profile, on_delete=models.DO_NOTHING, related_name="wallets"
+        Profile,
+        on_delete=models.SET_DEFAULT,
+        related_name="wallets",
+        default="deleted_user",
     )
     wallet_id = models.CharField(max_length=50, unique=True)
     currency = models.CharField(max_length=10, choices=SELECTABLE_CURRENCIES)
