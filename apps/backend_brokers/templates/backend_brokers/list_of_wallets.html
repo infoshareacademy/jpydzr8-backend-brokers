@@ -7,11 +7,13 @@
 
   <a href="{% url 'profile_edit' %}">Edytuj profil</a> |   <a href="{% url 'wallets' %}">Lista portfeli</a> |   <a href="{% url 'exchange_rates' %}">Tabela kursów </a>
 
-<h2>Twoje portfele</h2>
-<ul>
+<h2>Twoje portfele </h2>
+<a href="{% url 'add_wallet' %}">Dodaj nowy portfel</a>
+
+  <ul>
     {% for wallet in wallets %}
     <li>
-        <a href="{% url 'wallet_transactions' wallet.id %}"> Posiadasz {{ wallet.balance }} {{ wallet.currency }} na rachunku {{ wallet.iban }} (identyfikator portfela to: {{ wallet.wallet_id }}) </a>
+        <a href="{% url 'wallet_transactions' wallet.id %}"> Posiadasz {{ wallet.balance|floatformat:2 }} {{ wallet.currency }} na rachunku {{ wallet.iban }} (identyfikator portfela to: {{ wallet.wallet_id }}) </a>
 
     </li>
     {% empty %}

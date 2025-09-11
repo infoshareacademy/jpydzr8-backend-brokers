@@ -200,7 +200,6 @@ def delete_wallet(
 
 
 def transfer_funds(request):
-    # CURRENCY_RATES = NBPClient().rates  # TODO - migrate currency rates to DB?
     if request.method == "POST":
         form = TransferForm(request.user, request.POST)
         if form.is_valid():
@@ -215,17 +214,15 @@ def transfer_funds(request):
             elif 0 > amount:
                 form.add_error("amount", "Nie można wykonać przelewu na ujemną kwotę.")
             else:
-                # source_rate = CURRENCY_RATES.get(source.currency, 1)
-                # destination_rate = CURRENCY_RATES.get(destination.currency, 1)
-                print(source.currency)
                 source_rate = ExchangeRate.objects.get(currency=source.currency).rate
-                print(source_rate)
                 destination_rate = ExchangeRate.objects.get(
                     currency=destination.currency
                 ).rate
-                print(destination_rate)
                 exchange_rate = source_rate / destination_rate
                 converted_amount = amount * Decimal(str(exchange_rate))
+
+                SPREAD_VALUE_PROMO = 0.005
+                SPREAD_VALUE_STANDARD = 0.01
 
                 # Balance updates
                 source.balance -= amount

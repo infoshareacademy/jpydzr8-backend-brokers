@@ -12,7 +12,7 @@
 
 <p>Waluta: {{ wallet.currency }}</p>
 
-<p>Stan konta: {{ wallet.balance }}</p>
+<p>Stan konta: {{ wallet.balance|floatformat:2 }}</p>
 
 <p>Numer konta do przelewu: {{ wallet.iban }}</p>
 
@@ -25,7 +25,7 @@
         {% for tx in transactions %}
             <li>
                 <strong>{{ tx.created_at|date:"Y-m-d H:i" }}</strong>
-                {{ tx.amount }} {{ tx.from_currency }} z konta {{ tx.source_iban }} wymieniono na {{ tx.result_amount }} {{ tx.to_currency }} po kursie {{ tx.rate }} i przelano na konto {{ tx.destination_iban }}<br>
+                {{ tx.amount|floatformat:2 }} {{ tx.from_currency }} z konta {{ tx.source_iban }} wymieniono na {{ tx.result_amount|floatformat:2 }} {{ tx.to_currency }} po kursie {{ tx.rate }} i przelano na konto {{ tx.destination_iban }}<br>
             </li>
         {% endfor %}
     </ul>
