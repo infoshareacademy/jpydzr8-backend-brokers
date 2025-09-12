@@ -24,6 +24,7 @@ class TransactionAdmin(admin.ModelAdmin):
         "rate",
         "result_amount",
         "created_at",
+        "visible_to",
     )
     search_fields = ("user__user__username", "from_currency", "to_currency")
     list_filter = ("created_at", "from_currency", "to_currency", "visible_to")
@@ -45,5 +46,5 @@ class WalletAdmin(admin.ModelAdmin):
         "balance",
         "wallet_status",
     )
-    search_fields = ("user__user__username", "from_currency", "to_currency")
+    search_fields = ("user__user__username",)
     list_filter = ("user", "currency", "wallet_status")

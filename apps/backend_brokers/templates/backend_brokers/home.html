@@ -4,14 +4,24 @@
     <meta charset="UTF-8">
     <title>Strona główna</title>
 </head>
-  {% if user.is_authenticated and user.profile %}
-    <a href="{% url 'profile_edit' %}">Edytuj profil</a> | 
-    <a href="{% url 'wallets' %}">Lista portfeli</a> | 
-    <a href="{% url 'exchange_rates' %}">Tabela kursów</a>
-  {% endif %} 
+
+ {% if user.is_authenticated and user.profile %}
+ <div align="right">
+    <a href="{% url 'exchange_rates' %}">Kursy walut</a> |
+    <a href="{% url 'wallets' %}">Twoje Portfele</a> |
+    <a href="{% url 'profile' %}">Twój profil</a> |
+    <form action="{% url 'logout' %}" method="post" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" style="background:none; border:none; color:#00f; cursor:pointer; text-decoration:underline;">
+        Wyloguj
+    </button>
+</div>
+
+  {% endif %}
+
 <body>
     <h1>Witaj w mojej aplikacji Django!</h1>
-    <h1>Hello World! It' Backend Brokers here!</h1>
+    <h1>Hello World! It's Backend Brokers here!</h1>
     <p>Backend Brokers</p>
 </body>
 </html>
