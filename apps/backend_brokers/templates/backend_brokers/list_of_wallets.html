@@ -5,15 +5,28 @@
     <title>Lista portfeli</title></head>
 <body>
 
-  <a href="{% url 'profile_edit' %}">Edytuj profil</a> |   <a href="{% url 'wallets' %}">Lista portfeli</a> |   <a href="{% url 'exchange_rates' %}">Tabela kursów </a>
+ {% if user.is_authenticated and user.profile %}
+ <div align="right">
+    <a href="{% url 'exchange_rates' %}">Kursy walut</a> |
+    <a href="{% url 'wallets' %}">Twoje Portfele</a> |
+    <a href="{% url 'profile' %}">Twój profil</a> |
+    <form action="{% url 'logout' %}" method="post" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" style="background:none; border:none; color:#00f; cursor:pointer; text-decoration:underline;">
+        Wyloguj
+    </button>
+</div>
+
+  {% endif %}
+
 
 <h2>Twoje portfele </h2>
-<a href="{% url 'add_wallet' %}">Dodaj nowy portfel</a>
-
+<a href="{% url 'add_wallet' %}">Dodaj</a>
+<BR><BR><BR>
   <ul>
     {% for wallet in wallets %}
     <li>
-        <a href="{% url 'wallet_transactions' wallet.id %}"> Posiadasz {{ wallet.balance|floatformat:2 }} {{ wallet.currency }} na rachunku {{ wallet.iban }} (identyfikator portfela to: {{ wallet.wallet_id }}) </a>
+        <a href="{% url 'wallet_transactions' wallet.id %}"> {{ wallet.balance|floatformat:2 }} {{ wallet.currency }}</a>
 
     </li>
     {% empty %}
@@ -22,30 +35,11 @@
 </ul>
 
 
-<div class="wallet creation"
-<p> Dla konta typu {{ request.user.profile.get_account_type_display }} możesz założyć {{ request.user.profile.wallet_limit }} portfeli. Dostępne portfele: {{ wallets_remaining }}</p>
-<p> Dla konta typu {{ request.user.profile.get_account_type_display }} możesz wykonać {{ request.user.profile.transaction_limit }} transakcji z promocyjnym spreadem w miesiącu kalendarzowym. </p>
- <h3>Wymiana walut</h3>
-{% if transactions_remaining <= 0 %}
-    <h2><a href="{% url 'transfer_funds' %}" >Zleć wymianę walut.</a></h2><BR>
-  Wyczerpano limit transakcji z promocynym spreadem. Kolejna wymiana wykonana będzie ze spreadem standardowym. <BR>
-
-  {% else %}
-    <h2><a href="{% url 'transfer_funds' %}" >Zleć wymianę walut.</a></h2><BR>
-  Pozostało {{ transactions_remaining }} transakcji z promocyjnym spreadem. <BR>
-{% endif %}
-<a href="{% url 'add_wallet' %}">Dodaj nowy portfel</a>
-</div>
-
-
-<p style="margin-top: 16px;">
-    <a href="{% url 'profile_edit' %}">Edytuj profil</a> |
-<form action="{% url 'logout' %}" method="post" style="display:inline;">
-    {% csrf_token %}
-    <button type="submit" style="background:none; border:none; color:#00f; cursor:pointer; text-decoration:underline;">
-        Wyloguj
-    </button>
-</form>
 </p>
+<BR><BR><BR>
+<div class="wallet creation"; style="color: gray; font-size: small">
+<p> Dla konta typu {{ request.user.profile.get_account_type_display }} możesz założyć {{ request.user.profile.wallet_limit }} portfeli. (Pozostało {{ wallets_remaining }} do osiągnięcia limitu).</p>
+<p> Dla konta typu {{ request.user.profile.get_account_type_display }} możesz wykonać {{ request.user.profile.transaction_limit }} transakcji z promocyjnym spreadem w miesiącu kalendarzowym. (Pozostało {{ transactions_remaining }} do osiągnięcia limitu).</p>
+</div>
 </body>
 </html>

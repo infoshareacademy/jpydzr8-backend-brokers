@@ -3,7 +3,20 @@
 <head><meta charset="utf-8"><title>Profil</title></head>
 <body>
 
-  <a href="{% url 'profile_edit' %}">Edytuj profil</a> |   <a href="{% url 'wallets' %}">Lista portfeli</a> |   <a href="{% url 'exchange_rates' %}">Tabela kursów </a>
+
+ {% if user.is_authenticated and user.profile %}
+ <div align="right">
+    <a href="{% url 'exchange_rates' %}">Kursy walut</a> |
+    <a href="{% url 'wallets' %}">Twoje Portfele</a> |
+    <a href="{% url 'profile' %}">Twój profil</a> |
+    <form action="{% url 'logout' %}" method="post" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" style="background:none; border:none; color:#00f; cursor:pointer; text-decoration:underline;">
+        Wyloguj
+    </button>
+</div>
+
+  {% endif %}
 
   <h1>Twój profil</h1>
 
@@ -19,15 +32,10 @@
   <p><b>Limity:</b> transakcje {{ request.user.profile.transaction_limit }},
      portfele {{ request.user.profile.wallet_limit }}</p>
 
-  <p><a href="{% url 'wallets' %}">Twoje portfele</a></p>
 
   <p style="margin-top: 16px;">
     <a href="{% url 'profile_edit' %}">Edytuj profil</a> |
-    <form action="{% url 'logout' %}" method="post" style="display:inline;">
-    {% csrf_token %}
-    <button type="submit" style="background:none; border:none; color:#00f; cursor:pointer; text-decoration:underline;">
-      Wyloguj
-    </button>
+
   </form>
   </p>
 </body>

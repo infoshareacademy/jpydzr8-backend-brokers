@@ -96,7 +96,7 @@ class Wallet(models.Model):
     currency = models.CharField(max_length=10, choices=SELECTABLE_CURRENCIES)
     iban = models.CharField(max_length=34, unique=True)
     balance = models.DecimalField(
-        max_digits=12, decimal_places=4, default=0.00
+        max_digits=12, decimal_places=2, default=0.00
     )  # Adjusted per Django Antipatterns
     wallet_status = models.CharField(max_length=50, default="active")
 

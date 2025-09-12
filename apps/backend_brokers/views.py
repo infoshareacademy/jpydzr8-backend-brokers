@@ -202,8 +202,8 @@ def delete_wallet(
 
 
 def transfer_funds(request):
-    SPREAD_VALUE_PROMO = 0.005
-    SPREAD_VALUE_STANDARD = 0.01
+    SPREAD_VALUE_PROMO = 0.01
+    SPREAD_VALUE_STANDARD = 0.02
     spread_value = SPREAD_VALUE_STANDARD
     now = timezone.now()
     transactions_current_month = Transaction.objects.filter(
