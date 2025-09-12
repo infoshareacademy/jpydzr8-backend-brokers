@@ -297,7 +297,7 @@ def transfer_funds(request):
                     to_currency=destination.currency,
                     destination_iban=destination.iban,
                     amount=converted_amount,
-                    rate=exchange_rate,
+                    rate=Decimal(1),
                     result_amount=converted_amount,
                     visible_to="admin-noprofit",
                 )
@@ -305,7 +305,7 @@ def transfer_funds(request):
                 Transaction.objects.create(
                     user=request.user.profile,
                     source_iban=source.iban,
-                    from_currency=source.currency,
+                    from_currency=destination.currency,
                     to_currency=destination.currency,
                     destination_iban=master_wallet_sell.iban,
                     amount=amount

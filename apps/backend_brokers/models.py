@@ -115,7 +115,7 @@ class Transaction(models.Model):
 
     # transaction data
     amount = models.DecimalField(
-        max_digits=12, decimal_places=4
+        max_digits=12, decimal_places=2
     )  # amount in source currency
     rate = models.DecimalField(max_digits=10, decimal_places=4)  # exchange rate
 
