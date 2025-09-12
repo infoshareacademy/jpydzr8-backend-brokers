@@ -131,7 +131,7 @@ class Transaction(models.Model):
 class ExchangeRate(models.Model):
     date = models.DateField()
     currency = models.CharField(max_length=3)
-    rate = models.DecimalField(max_digits=12, decimal_places=6)
+    rate = models.DecimalField(max_digits=12, decimal_places=4)
 
     class Meta:
         unique_together = ("date", "currency")

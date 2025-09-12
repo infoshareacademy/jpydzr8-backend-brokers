@@ -149,9 +149,9 @@ def wallet_properies_and_history(request, wallet_id):
     iban = wallet.iban
 
     transactions = Transaction.objects.filter(
-        source_iban=iban
+        source_iban=iban, visible_to="user"
     ) | Transaction.objects.filter(
-        destination_iban=iban
+        destination_iban=iban, visible_to="user"
     )  # list of all transactions containing given wallet iban
 
     transactions = transactions.order_by(
@@ -236,10 +236,18 @@ def transfer_funds(request):
             elif 0 > amount:
                 form.add_error("amount", "Nie można wykonać przelewu na ujemną kwotę.")
             else:
-                source_rate = ExchangeRate.objects.get(currency=source.currency).rate
-                destination_rate = ExchangeRate.objects.get(
-                    currency=destination.currency
-                ).rate
+                source_rate = (
+                    ExchangeRate.objects.filter(currency=source.currency)
+                    .order_by("-date")
+                    .first()
+                    .rate
+                )
+                destination_rate = (
+                    ExchangeRate.objects.filter(currency=destination.currency)
+                    .order_by("-date")
+                    .first()
+                    .rate
+                )
                 exchange_rate = (source_rate / destination_rate) * Decimal(
                     1 - spread_value
                 )
@@ -287,9 +295,7 @@ def transfer_funds(request):
                     source_iban=master_wallet_sell.iban,
                     from_currency=destination.currency,
                     to_currency=destination.currency,
-                    destination_iban=str(request.user.profile.id)
-                    + "@"
-                    + destination.iban,
+                    destination_iban=destination.iban,
                     amount=converted_amount,
                     rate=exchange_rate,
                     result_amount=converted_amount,
