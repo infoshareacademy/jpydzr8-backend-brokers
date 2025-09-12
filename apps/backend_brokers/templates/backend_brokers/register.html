@@ -1,4 +1,35 @@
-<!doctype html>
+{% extends 'backend_brokers/base.html' %}
+
+{% block title %}Utwórz konto{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 500px;">
+        <div class="card-body">
+            <h1 class="card-title text-center mb-4" style="color: #6c757d;">Utwórz konto</h1>
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-success w-100">Zarejestruj</button>
+            </form>
+
+            <p class="text-center mt-3">
+                Masz już konto? <a href="{% url 'login' %}">Zaloguj się</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+<!-- <!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -34,4 +65,4 @@
     <p><a href="{% url 'login' %}">Zaloguj się</a></p>
   </p>
 </body>
-</html>
+</html> -->
