@@ -1,3 +1,5 @@
+import decimal
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -200,10 +202,30 @@ def delete_wallet(
 
 
 def transfer_funds(request):
+    SPREAD_VALUE_PROMO = 0.005
+    SPREAD_VALUE_STANDARD = 0.01
+    spread_value = SPREAD_VALUE_STANDARD
+    now = timezone.now()
+    transactions_current_month = Transaction.objects.filter(
+        user_id=request.user.id, created_at__year=now.year, created_at__month=now.month
+    )
+    transactions_count = transactions_current_month.count()
+    transactions_remaining = request.user.profile.transaction_limit - transactions_count
+    if transactions_remaining > 0:
+        spread_value = SPREAD_VALUE_PROMO
+
     if request.method == "POST":
         form = TransferForm(request.user, request.POST)
         if form.is_valid():
             source = form.cleaned_data["source_wallet"]
+            master_wallet_buy = Wallet.objects.filter(
+                user_id="10", wallet_status="active", currency=source.currency
+            )[0]
+            print(master_wallet_buy)
+            destination = form.cleaned_data["destination_wallet"]
+            master_wallet_sell = Wallet.objects.filter(
+                user_id="10", wallet_status="active", currency=destination.currency
+            )[0]
             destination = form.cleaned_data["destination_wallet"]
             amount = form.cleaned_data["amount"]
 
@@ -218,17 +240,20 @@ def transfer_funds(request):
                 destination_rate = ExchangeRate.objects.get(
                     currency=destination.currency
                 ).rate
-                exchange_rate = source_rate / destination_rate
+                exchange_rate = (source_rate / destination_rate) * Decimal(
+                    1 - spread_value
+                )
                 converted_amount = amount * Decimal(str(exchange_rate))
-
-                SPREAD_VALUE_PROMO = 0.005
-                SPREAD_VALUE_STANDARD = 0.01
 
                 # Balance updates
                 source.balance -= amount
+                master_wallet_buy.balance += amount
                 destination.balance += converted_amount
+                master_wallet_sell.balance -= converted_amount
                 source.save()
                 destination.save()
+                master_wallet_sell.save()
+                master_wallet_buy.save()
 
                 # Save details to DB
                 Transaction.objects.create(
@@ -241,6 +266,17 @@ def transfer_funds(request):
                     rate=exchange_rate,
                     result_amount=converted_amount,
                 )
+
+                # Transaction.objects.create(
+                #     user=request.user.profile,
+                #     source_iban=source.iban,
+                #     from_currency=source.currency,
+                #     to_currency=destination.currency,
+                #     destination_iban=destination.iban,
+                #     amount=amount,
+                #     rate=exchange_rate,
+                #     result_amount=converted_amount,
+                # )
 
                 return redirect("wallets")
     else:

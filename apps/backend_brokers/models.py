@@ -51,6 +51,7 @@ class Profile(models.Model):
 
 class Wallet(models.Model):
     SELECTABLE_CURRENCIES = [
+        ("PLN", "polski nowy złoty"),
         ("EUR", "euro"),
         ("USD", "dolar amerykański"),
         ("AUD", "dolar australijski"),
