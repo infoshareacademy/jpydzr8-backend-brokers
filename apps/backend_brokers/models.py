@@ -51,6 +51,7 @@ class Profile(models.Model):
 
 class Wallet(models.Model):
     SELECTABLE_CURRENCIES = [
+        ("PLN", "polski nowy złoty"),
         ("EUR", "euro"),
         ("USD", "dolar amerykański"),
         ("AUD", "dolar australijski"),
@@ -95,7 +96,7 @@ class Wallet(models.Model):
     currency = models.CharField(max_length=10, choices=SELECTABLE_CURRENCIES)
     iban = models.CharField(max_length=34, unique=True)
     balance = models.DecimalField(
-        max_digits=12, decimal_places=4, default=0.00
+        max_digits=12, decimal_places=2, default=0.00
     )  # Adjusted per Django Antipatterns
     wallet_status = models.CharField(max_length=50, default="active")
 
@@ -114,13 +115,14 @@ class Transaction(models.Model):
 
     # transaction data
     amount = models.DecimalField(
-        max_digits=12, decimal_places=4
+        max_digits=12, decimal_places=2
     )  # amount in source currency
     rate = models.DecimalField(max_digits=10, decimal_places=4)  # exchange rate
 
     # exchange result, form now its editable, need to turn off later
     result_amount = models.DecimalField(max_digits=12, decimal_places=2, editable=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    visible_to = models.CharField(max_length=32)  # np. "admin", "user"
 
     def __str__(self):
         return f"{self.user.user.username}: {self.amount} {self.from_currency} → {self.to_currency} @ {self.rate}"
@@ -129,7 +131,7 @@ class Transaction(models.Model):
 class ExchangeRate(models.Model):
     date = models.DateField()
     currency = models.CharField(max_length=3)
-    rate = models.DecimalField(max_digits=12, decimal_places=6)
+    rate = models.DecimalField(max_digits=12, decimal_places=4)
 
     class Meta:
         unique_together = ("date", "currency")

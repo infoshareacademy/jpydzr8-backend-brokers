@@ -96,10 +96,10 @@ class TransferForm(forms.Form):
     destination_wallet = forms.ModelChoiceField(
         queryset=Wallet.objects.none(), label="Konto docelowe"
     )
-    amount = forms.DecimalField(max_digits=10, decimal_places=4, label="Kwota")
+    amount = forms.DecimalField(max_digits=10, decimal_places=2, label="Kwota")
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        user_wallets = Wallet.objects.filter(user_id=user.id)
+        user_wallets = Wallet.objects.filter(user_id=user.id, wallet_status="active")
         self.fields["source_wallet"].queryset = user_wallets
         self.fields["destination_wallet"].queryset = user_wallets

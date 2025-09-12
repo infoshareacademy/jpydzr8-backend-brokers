@@ -1,3 +1,5 @@
+import decimal
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -147,9 +149,9 @@ def wallet_properies_and_history(request, wallet_id):
     iban = wallet.iban
 
     transactions = Transaction.objects.filter(
-        source_iban=iban
+        source_iban=iban, visible_to="user"
     ) | Transaction.objects.filter(
-        destination_iban=iban
+        destination_iban=iban, visible_to="user"
     )  # list of all transactions containing given wallet iban
 
     transactions = transactions.order_by(
@@ -200,11 +202,30 @@ def delete_wallet(
 
 
 def transfer_funds(request):
-    # CURRENCY_RATES = NBPClient().rates  # TODO - migrate currency rates to DB?
+    SPREAD_VALUE_PROMO = 0.01
+    SPREAD_VALUE_STANDARD = 0.02
+    spread_value = SPREAD_VALUE_STANDARD
+    now = timezone.now()
+    transactions_current_month = Transaction.objects.filter(
+        user_id=request.user.id, created_at__year=now.year, created_at__month=now.month
+    )
+    transactions_count = transactions_current_month.count()
+    transactions_remaining = request.user.profile.transaction_limit - transactions_count
+    if transactions_remaining > 0:
+        spread_value = SPREAD_VALUE_PROMO
+
     if request.method == "POST":
         form = TransferForm(request.user, request.POST)
         if form.is_valid():
             source = form.cleaned_data["source_wallet"]
+            master_wallet_buy = Wallet.objects.filter(
+                user_id="10", wallet_status="active", currency=source.currency
+            )[0]
+            print(master_wallet_buy)
+            destination = form.cleaned_data["destination_wallet"]
+            master_wallet_sell = Wallet.objects.filter(
+                user_id="10", wallet_status="active", currency=destination.currency
+            )[0]
             destination = form.cleaned_data["destination_wallet"]
             amount = form.cleaned_data["amount"]
 
@@ -215,25 +236,34 @@ def transfer_funds(request):
             elif 0 > amount:
                 form.add_error("amount", "Nie można wykonać przelewu na ujemną kwotę.")
             else:
-                # source_rate = CURRENCY_RATES.get(source.currency, 1)
-                # destination_rate = CURRENCY_RATES.get(destination.currency, 1)
-                print(source.currency)
-                source_rate = ExchangeRate.objects.get(currency=source.currency).rate
-                print(source_rate)
-                destination_rate = ExchangeRate.objects.get(
-                    currency=destination.currency
-                ).rate
-                print(destination_rate)
-                exchange_rate = source_rate / destination_rate
+                source_rate = (
+                    ExchangeRate.objects.filter(currency=source.currency)
+                    .order_by("-date")
+                    .first()
+                    .rate
+                )
+                destination_rate = (
+                    ExchangeRate.objects.filter(currency=destination.currency)
+                    .order_by("-date")
+                    .first()
+                    .rate
+                )
+                exchange_rate = (source_rate / destination_rate) * Decimal(
+                    1 - spread_value
+                )
                 converted_amount = amount * Decimal(str(exchange_rate))
 
                 # Balance updates
                 source.balance -= amount
+                master_wallet_buy.balance += amount
                 destination.balance += converted_amount
+                master_wallet_sell.balance -= converted_amount
                 source.save()
                 destination.save()
+                master_wallet_sell.save()
+                master_wallet_buy.save()
 
-                # Save details to DB
+                # Save details to DB - visible to user
                 Transaction.objects.create(
                     user=request.user.profile,
                     source_iban=source.iban,
@@ -243,6 +273,51 @@ def transfer_funds(request):
                     amount=amount,
                     rate=exchange_rate,
                     result_amount=converted_amount,
+                    visible_to="user",
+                )
+
+                # Save details to DB - user to wallet-master transfer
+                Transaction.objects.create(
+                    user=request.user.profile,
+                    source_iban=source.iban,
+                    from_currency=source.currency,
+                    to_currency=source.currency,
+                    destination_iban=master_wallet_buy.iban,
+                    amount=amount,
+                    rate=Decimal(1),
+                    result_amount=amount,
+                    visible_to="admin-noprofit",
+                )
+
+                # Save details to DB - wallet-master to user transfer
+                Transaction.objects.create(
+                    user=request.user.profile,
+                    source_iban=master_wallet_sell.iban,
+                    from_currency=destination.currency,
+                    to_currency=destination.currency,
+                    destination_iban=destination.iban,
+                    amount=converted_amount,
+                    rate=Decimal(1),
+                    result_amount=converted_amount,
+                    visible_to="admin-noprofit",
+                )
+                # Save details to DB - wallet-master profit (user-source x spread)
+                Transaction.objects.create(
+                    user=request.user.profile,
+                    source_iban=source.iban,
+                    from_currency=destination.currency,
+                    to_currency=destination.currency,
+                    destination_iban=master_wallet_sell.iban,
+                    amount=amount
+                    * Decimal(
+                        str((source_rate / destination_rate) * Decimal(spread_value))
+                    ),
+                    rate=exchange_rate,
+                    result_amount=amount
+                    * Decimal(
+                        str((source_rate / destination_rate) * Decimal(spread_value))
+                    ),
+                    visible_to="admin-profit",
                 )
 
                 return redirect("wallets")
