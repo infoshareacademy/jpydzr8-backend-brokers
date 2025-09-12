@@ -11,11 +11,6 @@
     <a href="{% url 'exchange_rates' %}">Kursy walut</a> |
     <a href="{% url 'wallets' %}">Twoje Portfele</a> |
     <a href="{% url 'profile' %}">Twój profil</a> |
-    <form action="{% url 'logout' %}" method="post" style="display:inline;">
-    {% csrf_token %}
-    <button type="submit" style="background:none; border:none; color:#00f; cursor:pointer; text-decoration:underline;">
-        Wyloguj
-    </button>
 </div>
 
   {% endif %}
