@@ -1,27 +1,14 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <title>Strona główna</title>
-</head>
+{% extends 'backend_brokers/base.html' %}
 
- {% if user.is_authenticated and user.profile %}
- <div align="right">
-    <a href="{% url 'exchange_rates' %}">Kursy walut</a> |
-    <a href="{% url 'wallets' %}">Twoje Portfele</a> |
-    <a href="{% url 'profile' %}">Twój profil</a> |
-    <form action="{% url 'logout' %}" method="post" style="display:inline;">
-    {% csrf_token %}
-    <button type="submit" style="background:none; border:none; color:#00f; cursor:pointer; text-decoration:underline;">
-        Wyloguj
-    </button>
+{% block title %}Strona główna{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="display-4">Waluta Ekspress</h1>
+    <p class="lead">Globalny kantor wymiany walut</p>
+
+    {% if not user.is_authenticated %}
+        <p class="mt-4">Zaloguj się lub zarejestruj, aby korzystać z portfeli i wymiany walut.</p>
+    {% endif %}
 </div>
-
-  {% endif %}
-
-<body>
-    <h1>Witaj w mojej aplikacji Django!</h1>
-    <h1>Hello World! It's Backend Brokers here!</h1>
-    <p>Backend Brokers</p>
-</body>
-</html>
+{% endblock %}

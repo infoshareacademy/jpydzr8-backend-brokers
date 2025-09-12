@@ -1,0 +1,12 @@
+.currency-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.currency-list li {
+    margin: 5px 0;
+    font-size: 1.1rem;
+    color: #6c757d;
+}
