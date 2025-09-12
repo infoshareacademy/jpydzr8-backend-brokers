@@ -1,3 +1,68 @@
+{% extends 'backend_brokers/base.html' %}
+
+{% block title %}Portfel {{ wallet.currency }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 700px;">
+        <div class="card-body">
+            <h1 class="card-title text-center mb-4">Portfel {{ wallet.currency }}</h1>
+
+            <p><strong>Waluta:</strong> {{ wallet.currency }}</p>
+            <p><strong>Stan konta:</strong> {{ wallet.balance|floatformat:2 }}</p>
+            <p><strong>Numer konta do przelewu:</strong> {{ wallet.iban }}</p>
+
+            <hr>
+
+            <h4>Dodaj środki / Wymiana</h4>
+            {% if transactions_remaining <= 0 %}
+                <a href="{% url 'transfer_funds' %}" class="btn btn-success mb-1">Wymień</a><br>
+                <small class="text-muted">
+                    Wyczerpano limit transakcji z promocyjnym spreadem. Kolejna wymiana będzie po kursie standardowym.
+                </small>
+            {% else %}
+                <a href="{% url 'transfer_funds' %}" class="btn btn-success mb-1">Wymień</a><br>
+                <small class="text-muted">
+                    Pozostało {{ transactions_remaining }} transakcji z promocyjnym spreadem.
+                </small>
+            {% endif %}
+
+            <hr>
+
+            {% if wallet.balance == 0 %}
+                <form action="{% url 'delete_wallet' wallet.id %}" method="get">
+                    <button type="submit" class="btn btn-danger">Usuń portfel</button>
+                </form>
+            {% else %}
+                <p><strong>Usuń portfel</strong></p>
+                <p class="text-muted small">
+                    Ten portfel nie może zostać usunięty ponieważ nie jest pusty. Saldo musi wynosić 0.00
+                </p>
+            {% endif %}
+
+            <hr>
+
+            <h4>Historia transakcji dla portfela: {{ wallet.name }}</h4>
+            {% if transactions %}
+                <ul class="list-group list-group-flush">
+                    {% for tx in transactions %}
+                        <li class="list-group-item">
+                            <strong>{{ tx.created_at|date:"Y-m-d H:i" }}</strong><br>
+                            {{ tx.amount|floatformat:2 }} {{ tx.from_currency }} z konta {{ tx.source_iban }} wymieniono na 
+                            {{ tx.result_amount|floatformat:2 }} {{ tx.to_currency }} po kursie {{ tx.rate }} i przelano na konto {{ tx.destination_iban }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Brak transakcji dla tego portfela.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+<!-- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -54,10 +119,10 @@
 
 
 ---------------------------------------<BR>
-<h2>Historia transakcji dla portfela: {{ wallet.name }}</h2>
+<h2>Historia transakcji dla portfela: {{ wallet.name }}</h2> -->
 <!--<p>IBAN: {{ wallet.iban }}</p>-->
 
-{% if transactions %}
+<!-- {% if transactions %}
     <ul>
         {% for tx in transactions %}
             <li>
@@ -72,5 +137,5 @@
 
 
 </body>
-</html>
+</html> -->
 

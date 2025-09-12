@@ -1,4 +1,38 @@
-<!doctype html>
+{% extends 'backend_brokers/base.html' %}
+
+{% block title %}Edycja profilu{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="card-body">
+            <h1 class="card-title text-center mb-4" style="color: #6c757d;">Edycja profilu</h1>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <fieldset class="mb-3">
+                    <legend>Dane użytkownika</legend>
+                    {{ uform.as_p }}
+                </fieldset>
+
+                <fieldset class="mb-3">
+                    <legend>Dane profilu</legend>
+                    {{ pform.as_p }}
+                </fieldset>
+
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-success">Zapisz</button>
+                    <a href="{% url 'profile' %}" class="btn btn-secondary">Anuluj</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+<!-- <!doctype html>
 <html lang="pl">
 <head><meta charset="utf-8"><title>Edycja profilu</title></head>
 <body>
@@ -24,4 +58,4 @@
     <a href="{% url 'profile' %}">Anuluj</a>
   </form>
 </body>
-</html>
+</html> -->

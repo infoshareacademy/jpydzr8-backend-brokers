@@ -1,12 +1,35 @@
-<!DOCTYPE html>
+{% extends 'backend_brokers/base.html' %}
+
+{% block title %}Strona główna{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 600px; background-color: #f8f9fa;">
+        <div class="card-body">
+            <h1 class="card-title text-center mb-4 text-secondary fw-bold">Kursy walut NBP</h1>
+            <ul class="list-unstyled text-center">
+                {% for code, rate in rates.items %}
+                    <li class="mb-2">1 {{ code }} = {{ rate }} PLN</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+<!-- <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <title>Kursy walut NBP</title>
 </head>
 
-
-  <a href="{% url 'profile_edit' %}">Edytuj profil</a> |   <a href="{% url 'wallets' %}">Lista portfeli</a> |   <a href="{% url 'exchange_rates' %}">Tabela kursów </a>
+  <a href="{% url 'profile_edit' %}">Edytuj profil</a> |
+  <a href="{% url 'wallets' %}">Lista portfeli</a> |
+  <a href="{% url 'exchange_rates' %}">Kursy walut </a>
 
 <body>
     <h1>Kursy walut NBP</h1>
@@ -16,4 +39,4 @@
       {% endfor %}
     </ul>
 </body>
-</html>
+</html> -->

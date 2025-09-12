@@ -1,4 +1,33 @@
-<!doctype html>
+{% extends 'backend_brokers/base.html' %}
+
+{% block title %}Twoje portfele{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-3">Twoje portfele</h2>
+    <a class="btn btn-success mb-3" href="{% url 'add_wallet' %}">Dodaj portfel</a>
+
+    <ul class="list-group mb-4">
+        {% for wallet in wallets %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <a href="{% url 'wallet_transactions' wallet.id %}">
+                    {{ wallet.balance|floatformat:2 }} {{ wallet.currency }}
+                </a>
+            </li>
+        {% empty %}
+            <li class="list-group-item">Brak portfeli</li>
+        {% endfor %}
+    </ul>
+
+    <div class="wallet-creation text-muted small">
+        <p>Dla konta typu {{ request.user.profile.get_account_type_display }} możesz założyć {{ request.user.profile.wallet_limit }} portfeli. (Pozostało {{ wallets_remaining }} do osiągnięcia limitu).</p>
+        <p>Dla konta typu {{ request.user.profile.get_account_type_display }} możesz wykonać {{ request.user.profile.transaction_limit }} transakcji z promocyjnym spreadem w miesiącu kalendarzowym. (Pozostało {{ transactions_remaining }} do osiągnięcia limitu).</p>
+    </div>
+</div>
+{% endblock %}
+
+
+<!-- <!doctype html>
 <html lang="pl">
 <head>
     <meta charset="utf-8">
@@ -42,4 +71,4 @@
 <p> Dla konta typu {{ request.user.profile.get_account_type_display }} możesz wykonać {{ request.user.profile.transaction_limit }} transakcji z promocyjnym spreadem w miesiącu kalendarzowym. (Pozostało {{ transactions_remaining }} do osiągnięcia limitu).</p>
 </div>
 </body>
-</html>
+</html> -->

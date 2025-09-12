@@ -1,4 +1,34 @@
-<!doctype html>
+{% extends 'backend_brokers/base.html' %}
+
+{% block title %}Twój profil{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="card-body">
+            <h1 class="card-title text-center mb-4" style="color: #6c757d;">Twój profil</h1>
+
+            <h4>Dane logowania (User)</h4>
+            <p><strong>Username:</strong> {{ request.user.username }}</p>
+
+            <h4>Dane profilu (Profile)</h4>
+            <p><strong>Telefon:</strong> {{ request.user.profile.phone_number|default:"—" }}</p>
+            <p><strong>Adres:</strong> {{ request.user.profile.address|default:"—" }}</p>
+            <p><strong>Typ konta:</strong> {{ request.user.profile.get_account_type_display }}</p>
+            <p><strong>Data urodzenia:</strong> {{ request.user.profile.date_of_birth|date:"Y-m-d"|default:"—" }}</p>
+            <p><strong>Limity:</strong> transakcje {{ request.user.profile.transaction_limit }},
+               portfele {{ request.user.profile.wallet_limit }}</p>
+
+            <div class="mt-4">
+                <a href="{% url 'profile_edit' %}" class="btn btn-primary">Edytuj profil</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+<!-- <!doctype html>
 <html lang="pl">
 <head><meta charset="utf-8"><title>Profil</title></head>
 <body>
@@ -39,4 +69,4 @@
   </form>
   </p>
 </body>
-</html>
+</html> -->

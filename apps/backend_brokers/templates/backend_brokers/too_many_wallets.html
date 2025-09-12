@@ -1,4 +1,28 @@
-<!DOCTYPE html>
+{% extends 'backend_brokers/base.html' %}
+
+{% block title %}Limit portfeli przekroczony{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="card-body text-center">
+            <h1 class="card-title mb-4" style="color: #dc3545;">Houston, mamy problem!</h1>
+
+            <p class="mb-3">
+                Wyczerpałeś limit liczby portfeli obsługiwanych w ramach Twojego konta.
+            </p>
+            <p>
+                Zaktualizuj swój plan serwisowy, aby dodać kolejny portfel.
+            </p>
+
+            <a href="{% url 'profile_edit' %}" class="btn btn-primary mt-3">Zaktualizuj plan</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,4 +35,4 @@
 Wyczerpałeś limit liczby portfeli obsługiwanych w ramach Twojego konta. <BR>
 Zaktualizuj swój plan serwisowy aby dodać kolejny portfel.
 </body>
-</html>
+</html> -->
