@@ -255,7 +255,7 @@ def transfer_funds(request):
                 master_wallet_sell.save()
                 master_wallet_buy.save()
 
-                # Save details to DB
+                # Save details to DB - visible to user
                 Transaction.objects.create(
                     user=request.user.profile,
                     source_iban=source.iban,
@@ -265,18 +265,54 @@ def transfer_funds(request):
                     amount=amount,
                     rate=exchange_rate,
                     result_amount=converted_amount,
+                    visible_to="user",
                 )
 
-                # Transaction.objects.create(
-                #     user=request.user.profile,
-                #     source_iban=source.iban,
-                #     from_currency=source.currency,
-                #     to_currency=destination.currency,
-                #     destination_iban=destination.iban,
-                #     amount=amount,
-                #     rate=exchange_rate,
-                #     result_amount=converted_amount,
-                # )
+                # Save details to DB - user to wallet-master transfer
+                Transaction.objects.create(
+                    user=request.user.profile,
+                    source_iban=source.iban,
+                    from_currency=source.currency,
+                    to_currency=source.currency,
+                    destination_iban=master_wallet_buy.iban,
+                    amount=amount,
+                    rate=Decimal(1),
+                    result_amount=amount,
+                    visible_to="admin-noprofit",
+                )
+
+                # Save details to DB - wallet-master to user transfer
+                Transaction.objects.create(
+                    user=request.user.profile,
+                    source_iban=master_wallet_sell.iban,
+                    from_currency=destination.currency,
+                    to_currency=destination.currency,
+                    destination_iban=str(request.user.profile.id)
+                    + "@"
+                    + destination.iban,
+                    amount=converted_amount,
+                    rate=exchange_rate,
+                    result_amount=converted_amount,
+                    visible_to="admin-noprofit",
+                )
+                # Save details to DB - wallet-master profit (user-source x spread)
+                Transaction.objects.create(
+                    user=request.user.profile,
+                    source_iban=source.iban,
+                    from_currency=source.currency,
+                    to_currency=destination.currency,
+                    destination_iban=master_wallet_sell.iban,
+                    amount=amount
+                    * Decimal(
+                        str((source_rate / destination_rate) * Decimal(spread_value))
+                    ),
+                    rate=exchange_rate,
+                    result_amount=amount
+                    * Decimal(
+                        str((source_rate / destination_rate) * Decimal(spread_value))
+                    ),
+                    visible_to="admin-profit",
+                )
 
                 return redirect("wallets")
     else:

@@ -122,6 +122,7 @@ class Transaction(models.Model):
     # exchange result, form now its editable, need to turn off later
     result_amount = models.DecimalField(max_digits=12, decimal_places=2, editable=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    visible_to = models.CharField(max_length=32)  # np. "admin", "user"
 
     def __str__(self):
         return f"{self.user.user.username}: {self.amount} {self.from_currency} → {self.to_currency} @ {self.rate}"
