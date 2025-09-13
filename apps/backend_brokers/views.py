@@ -10,6 +10,7 @@ from .forms import (
     AddWalletForm,
     WalletDeleteForm,
     TransferForm,
+    DepositForm
 )
 from .models import Profile, Wallet, Transaction, ExchangeRate
 from apps.backend_brokers.nbp_client import NBPClient
@@ -325,3 +326,33 @@ def transfer_funds(request):
         form = TransferForm(request.user)
 
     return render(request, "backend_brokers/transfer_form.html", {"form": form})
+
+@login_required
+def deposit(request):
+    if request.method == "POST":
+        form = DepositForm(request.user, request.POST)
+        if form.is_valid():
+            wallet = form.cleaned_data["wallet"]
+            amount = form.cleaned_data["amount"]
+
+            wallet.balance += amount
+            wallet.save()
+
+            Transaction.objects.create(
+                user=request.user.profile,
+                source_iban=wallet.iban,
+                from_currency=wallet.currency,
+                to_currency=wallet.currency,
+                destination_iban=wallet.iban,
+                amount=amount,
+                rate=Decimal(1),
+                result_amount=amount,
+                visible_to="user",
+            )
+
+            return redirect("wallets")
+    else:
+        form = DepositForm(request.user)
+
+    return render(request, "backend_brokers/deposit.html", {"form": form})
+

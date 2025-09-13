@@ -5,7 +5,10 @@
 {% block content %}
 <div class="container mt-5">
     <h2 class="mb-3">Twoje portfele</h2>
-    <a class="btn btn-success mb-3" href="{% url 'add_wallet' %}">Dodaj portfel</a>
+    <div>
+        <a class="btn btn-success mb-3" href="{% url 'add_wallet' %}">Dodaj portfel</a>
+        <a class="btn btn-success mb-3" href="{% url 'deposit' %}" >Zasil konto</a>
+    </div>
 
     <ul class="list-group mb-4">
         {% for wallet in wallets %}

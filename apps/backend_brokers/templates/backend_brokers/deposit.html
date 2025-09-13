@@ -1,0 +1,10 @@
+{% extends "backend_brokers/base.html" %}
+
+{% block content %}
+<h2>Zasil konto</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Zasil</button>
+</form>
+{% endblock %}
