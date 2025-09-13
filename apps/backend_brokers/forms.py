@@ -103,3 +103,14 @@ class TransferForm(forms.Form):
         user_wallets = Wallet.objects.filter(user_id=user.id, wallet_status="active")
         self.fields["source_wallet"].queryset = user_wallets
         self.fields["destination_wallet"].queryset = user_wallets
+
+
+class DepositForm(forms.Form):
+    wallet = forms.ModelChoiceField(queryset=Wallet.objects.none())
+    amount = forms.DecimalField(max_digits=12, decimal_places=2, min_value=0.01)
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["wallet"].queryset = Wallet.objects.filter(
+            user=user.profile, wallet_status="active"
+        )
