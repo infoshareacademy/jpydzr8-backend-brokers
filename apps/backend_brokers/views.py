@@ -87,7 +87,7 @@ def wallet(request):
     wallets_count = wallets.count()
     wallets_remaining = request.user.profile.wallet_limit - wallets_count
     transactions_current_month = Transaction.objects.filter(
-        user_id=request.user.id, created_at__year=now.year, created_at__month=now.month
+        user_id=request.user.id, visible_to='user', created_at__year=now.year, created_at__month=now.month
     )
     transactions_count = transactions_current_month.count()
     transactions_remaining = request.user.profile.transaction_limit - transactions_count
@@ -153,6 +153,8 @@ def wallet_properies_and_history(request, wallet_id):
         source_iban=iban, visible_to="user"
     ) | Transaction.objects.filter(
         destination_iban=iban, visible_to="user"
+    ) | Transaction.objects.filter(
+        destination_iban=iban, visible_to="deposit"
     )  # list of all transactions containing given wallet iban
 
     transactions = transactions.order_by(
@@ -208,7 +210,7 @@ def transfer_funds(request):
     spread_value = SPREAD_VALUE_STANDARD
     now = timezone.now()
     transactions_current_month = Transaction.objects.filter(
-        user_id=request.user.id, created_at__year=now.year, created_at__month=now.month
+        user_id=request.user.id, visible_to='user', created_at__year=now.year, created_at__month=now.month
     )
     transactions_count = transactions_current_month.count()
     transactions_remaining = request.user.profile.transaction_limit - transactions_count
@@ -347,7 +349,7 @@ def deposit(request):
                 amount=amount,
                 rate=Decimal(1),
                 result_amount=amount,
-                visible_to="user",
+                visible_to="deposit",
             )
 
             return redirect("wallets")
