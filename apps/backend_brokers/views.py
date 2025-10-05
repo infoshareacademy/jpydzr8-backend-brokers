@@ -10,7 +10,7 @@ from .forms import (
     AddWalletForm,
     WalletDeleteForm,
     TransferForm,
-    DepositForm
+    DepositForm,
 )
 from .models import Profile, Wallet, Transaction, ExchangeRate
 from apps.backend_brokers.nbp_client import NBPClient
@@ -18,6 +18,8 @@ from schwifty import IBAN
 import random
 from decimal import Decimal
 from django.utils import timezone
+from django_otp.decorators import otp_required
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 
 def home(request):
@@ -31,13 +33,21 @@ def register(request):
             user = form.save()
             Profile.objects.get_or_create(user=user)
             login(request, user)
-            return redirect("profile")
+            return redirect("two_factor:login")
     else:
         form = RegisterForm()
 
     return render(request, "backend_brokers/register.html", {"form": form})
 
 
+def post_login_redirect(request):
+    user = request.user
+    if not TOTPDevice.objects.filter(user=user, confirmed=True).exists():
+        return redirect("two_factor:setup")  # przekierowanie do konfiguracji OTP
+    return render(request, "backend_brokers/profile.html")
+
+
+# @otp_required
 @login_required
 def profile(request):
     # shows the logged-in user's data
@@ -87,7 +97,10 @@ def wallet(request):
     wallets_count = wallets.count()
     wallets_remaining = request.user.profile.wallet_limit - wallets_count
     transactions_current_month = Transaction.objects.filter(
-        user_id=request.user.id, visible_to='user', created_at__year=now.year, created_at__month=now.month
+        user_id=request.user.id,
+        visible_to="user",
+        created_at__year=now.year,
+        created_at__month=now.month,
     )
     transactions_count = transactions_current_month.count()
     transactions_remaining = request.user.profile.transaction_limit - transactions_count
@@ -149,12 +162,10 @@ def wallet_properies_and_history(request, wallet_id):
     )
     iban = wallet.iban
 
-    transactions = Transaction.objects.filter(
-        source_iban=iban, visible_to="user"
-    ) | Transaction.objects.filter(
-        destination_iban=iban, visible_to="user"
-    ) | Transaction.objects.filter(
-        destination_iban=iban, visible_to="deposit"
+    transactions = (
+        Transaction.objects.filter(source_iban=iban, visible_to="user")
+        | Transaction.objects.filter(destination_iban=iban, visible_to="user")
+        | Transaction.objects.filter(destination_iban=iban, visible_to="deposit")
     )  # list of all transactions containing given wallet iban
 
     transactions = transactions.order_by(
@@ -210,7 +221,10 @@ def transfer_funds(request):
     spread_value = SPREAD_VALUE_STANDARD
     now = timezone.now()
     transactions_current_month = Transaction.objects.filter(
-        user_id=request.user.id, visible_to='user', created_at__year=now.year, created_at__month=now.month
+        user_id=request.user.id,
+        visible_to="user",
+        created_at__year=now.year,
+        created_at__month=now.month,
     )
     transactions_count = transactions_current_month.count()
     transactions_remaining = request.user.profile.transaction_limit - transactions_count
@@ -329,6 +343,7 @@ def transfer_funds(request):
 
     return render(request, "backend_brokers/transfer_form.html", {"form": form})
 
+
 @login_required
 def deposit(request):
     if request.method == "POST":
@@ -357,4 +372,3 @@ def deposit(request):
         form = DepositForm(request.user)
 
     return render(request, "backend_brokers/deposit.html", {"form": form})
-
