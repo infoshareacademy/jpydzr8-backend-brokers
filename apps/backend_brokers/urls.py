@@ -33,4 +33,5 @@ urlpatterns = [
     path("wallet/<int:wallet_id>/delete/", views.delete_wallet, name="delete_wallet"),
     path("wallets/transfer", views.transfer_funds, name="transfer_funds"),
     path("wallet/deposit/", views.deposit, name="deposit"),
+    path('stats/', views.stats_dashboard, name='stats_dashboard'),
 ]

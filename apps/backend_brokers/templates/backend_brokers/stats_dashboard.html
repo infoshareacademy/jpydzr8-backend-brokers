@@ -1,0 +1,201 @@
+{% extends 'backend_brokers/base.html' %}
+{% load static %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h2 class="h3 fw-bold border-bottom pb-2">Panel Statystyk</h2>
+    </div>
+
+    {% if error_message %}
+    <div class="alert alert-danger mb-4" role="alert">
+        <strong>Błąd:</strong> {{ error_message }}
+    </div>
+    {% endif %}
+
+    <div id="debugData" class="alert alert-warning d-none mb-4">
+        <strong>DEBUG:</strong> Miesiące i sumy są puste. Sprawdź konsolę i widok Pythona.
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="h5 mb-3">Agregowane transakcje (tabela)</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Miesiąc</th>
+                            <th>Suma (PLN)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in transactions_agg %}
+                        <tr>
+                            <td>{{ item.month|date:"F Y" }}</td>
+                            <td>{{ item.total|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="2" class="text-center text-muted">Brak transakcji do wyświetlenia</td></tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="2"><strong>Łączna suma: {{ total_sum|floatformat:2 }} zł</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sekcja wykresów -->
+    <div class="row g-4">
+        <!-- Wykres obszarowy -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h4 class="h5 mb-3">Suma transakcji w ostatnich 12 miesiącach</h4>
+                    <div id="chartContainer" class="mb-3" style="height: 400px;">
+                        <canvas id="areaChart"></canvas>
+                    </div>
+                    <div id="noDataMessage" class="alert alert-secondary text-center d-none">
+                        Brak wystarczających danych do wygenerowania wykresu transakcji z ostatnich 12 miesięcy.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wykres kołowy -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h4 class="h5 mb-3">Udział miesięczny w sumie transakcji</h4>
+                    <div style="height: 400px;">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ months_json|json_script:"months-data" }}
+{{ totals_json|json_script:"totals-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const monthsRaw = JSON.parse(document.getElementById('months-data').textContent);
+    const totalsRaw = JSON.parse(document.getElementById('totals-data').textContent);
+
+    const filtered = monthsRaw.map((m, i) => ({
+        month: m,
+        total: parseFloat(totalsRaw[i])
+    })).filter(item => item.total > 0);
+
+    const months = filtered.map(item => item.month);
+    const totals = filtered.map(item => item.total);
+
+    const chartContainer = document.getElementById('chartContainer');
+    const noDataMessage = document.getElementById('noDataMessage');
+    const debugData = document.getElementById('debugData');
+
+    const numericTotals = totals.filter(n => typeof n === 'number' && !isNaN(n));
+    const maxTotal = numericTotals.length > 0 && Math.max(...numericTotals) > 0
+        ? Math.max(...numericTotals) * 1.1
+        : 100;
+
+    if (months.length === 0 || numericTotals.length === 0) {
+        chartContainer.classList.add('d-none');
+        noDataMessage.classList.remove('d-none');
+        debugData.classList.remove('d-none');
+        console.warn("Brak danych do wygenerowania wykresów.");
+        console.log("months:", months);
+        console.log("totals:", totals);
+    } else {
+        chartContainer.classList.remove('d-none');
+        noDataMessage.classList.add('d-none');
+        debugData.classList.add('d-none');
+
+        Chart.defaults.font.family = 'Inter, sans-serif';
+        Chart.defaults.borderColor = '#dee2e6';
+        Chart.defaults.responsive = true;
+        Chart.defaults.maintainAspectRatio = false;
+
+        const areaCtx = document.getElementById('areaChart').getContext('2d');
+        new Chart(areaCtx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Suma transakcji (PLN)',
+                    data: totals,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#0d6efd'
+                }]
+            },
+            options: {
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        beginAtZero: true,
+                        max: maxTotal,
+                        ticks: {
+                            callback: val => val.toLocaleString('pl-PL', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+                            color: '#6c757d'
+                        },
+                        grid: { color: '#f8f9fa' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        padding: 12,
+                        callbacks: {
+                            title: (items) => items[0].label,
+                            label: ctx => ` ${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(2)} zł`
+                        }
+                    }
+                }
+            }
+        });
+
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: months,
+                datasets: [{
+                    data: totals,
+                    backgroundColor: months.map((_, i) => `hsl(${i * 30}, 70%, 60%)`),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#212529'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const value = context.parsed;
+                                const percent = total > 0 ? (value / total * 100).toFixed(1) : 0;
+                                return `${context.label}: ${value.toFixed(2)} zł (${percent}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -47,9 +47,10 @@
     <div class="collapse navbar-collapse justify-content-end">
         {% if user.is_authenticated and user.profile %}
             Witaj&nbsp;<strong class="me-2">{{ user.first_name }}</strong>|
-            <a class="nav-link d-inline mx-2" href="{% url 'exchange_rates' %}">Kursy walut</a>|
             <a class="nav-link d-inline mx-2" href="{% url 'wallets' %}">Twoje Portfele</a>|
             <a class="nav-link d-inline mx-2" href="{% url 'profile' %}">Twój profil</a>|
+            <a class="nav-link d-inline mx-2" href="{% url 'stats_dashboard' %}">Statystyka</a>|
+            <a class="nav-link d-inline mx-2" href="{% url 'exchange_rates' %}">Kursy walut</a>|
             <form action="{% url 'logout' %}" method="post" class="d-inline">
                 {% csrf_token %}
                 <button type="submit" class="logout-btn">&nbsp;Wyloguj</button>

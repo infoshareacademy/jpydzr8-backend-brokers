@@ -7,6 +7,10 @@
     <div class="card shadow-sm mx-auto" style="max-width: 600px; background-color: #f8f9fa;">
         <div class="card-body">
             <h1 class="card-title text-center mb-4 text-secondary fw-bold">Kursy walut NBP</h1>
+                <p class="text-center text-muted mb-4 fs-5">
+                    Aktualne na dzień: {{ date }}
+                </p>
+
             <ul class="list-unstyled text-center">
                 {% for code, rate in rates.items %}
                     <li class="mb-2">1 {{ code }} = {{ rate }} PLN</li>
@@ -16,27 +20,3 @@
     </div>
 </div>
 {% endblock %}
-
-
-
-
-<!-- <!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <title>Kursy walut NBP</title>
-</head>
-
-  <a href="{% url 'profile_edit' %}">Edytuj profil</a> |
-  <a href="{% url 'wallets' %}">Lista portfeli</a> |
-  <a href="{% url 'exchange_rates' %}">Kursy walut </a>
-
-<body>
-    <h1>Kursy walut NBP</h1>
-    <ul>
-      {% for code, rate in rates.items %}
-        <li>1 {{ code }} = {{ rate }} PLN</li>
-      {% endfor %}
-    </ul>
-</body>
-</html> -->
