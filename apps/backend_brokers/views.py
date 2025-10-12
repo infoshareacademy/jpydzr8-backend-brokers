@@ -25,6 +25,7 @@ from django_otp.decorators import otp_required
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
+from dateutil.relativedelta import relativedelta
 
 
 def home(request):
@@ -379,6 +380,7 @@ def deposit(request):
     return render(request, "backend_brokers/deposit.html", {"form": form})
 
 
+
 @login_required
 def stats_dashboard(request):
     user_profile = None
@@ -395,11 +397,11 @@ def stats_dashboard(request):
 
     if user_profile:
         now = datetime.now()
-        one_year_ago = now - timedelta(days=365)
+        start_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - relativedelta(months=11)
 
         trans_qs = (
             Transaction.objects
-            .filter(user=user_profile, visible_to="user", created_at__gte=one_year_ago)
+            .filter(user=user_profile, visible_to="user", created_at__gte=start_month)
             .annotate(month=TruncMonth('created_at'))
             .values('month')
             .annotate(total=Sum('result_amount'))
@@ -409,16 +411,11 @@ def stats_dashboard(request):
         date_format = '%b %Y'
         month_data = OrderedDict()
         
-        current = one_year_ago.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        
+        current = start_month
         for i in range(12):
             month_label = current.strftime(date_format)
             month_data[month_label] = 0.0
-            
-            if current.month == 12:
-                current = current.replace(year=current.year + 1, month=1)
-            else:
-                current = current.replace(month=current.month + 1)
+            current += relativedelta(months=1)
                 
         for t in trans_qs:
             month_key = t['month'].strftime(date_format)
@@ -444,4 +441,3 @@ def stats_dashboard(request):
         'total_sum': total_sum,
     }
     return render(request, 'backend_brokers/stats_dashboard.html', context)
-
