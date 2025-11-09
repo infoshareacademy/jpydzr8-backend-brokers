@@ -390,54 +390,117 @@ def stats_dashboard(request):
         user_profile = request.user.profile
     except Exception:
         error_message = "Wystąpił nieoczekiwany błąd podczas ładowania profilu."
-        
+
     months = []
     totals = []
+    profits = []
     transactions_agg_list = []
+    profit_agg_list = []
 
     if user_profile:
         now = datetime.now()
-        start_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - relativedelta(months=11)
 
-        trans_qs = (
-            Transaction.objects
-            .filter(user=user_profile, visible_to="user", created_at__gte=start_month)
-            .annotate(month=TruncMonth('created_at'))
-            .values('month')
-            .annotate(total=Sum('result_amount'))
-            .order_by('month')
-        )
+        # 🔸 Superuser widzi 12 miesięcy, zwykły użytkownik 6
+        months_range = 12 if request.user.is_superuser else 6
+        start_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - relativedelta(months=months_range - 1)
+
+        # 🔸 Jeśli superuser – pokazujemy wszystkie transakcje
+        if request.user.is_superuser:
+            trans_qs = (
+                Transaction.objects
+                .filter(visible_to="user", created_at__gte=start_month)
+                .annotate(month=TruncMonth('created_at'))
+                .order_by('month')
+            )
+        else:
+            trans_qs = (
+                Transaction.objects
+                .filter(user=user_profile, visible_to="user", created_at__gte=start_month)
+                .annotate(month=TruncMonth('created_at'))
+                .order_by('month')
+            )
 
         date_format = '%b %Y'
         month_data = OrderedDict()
-        
-        current = start_month
-        for i in range(12):
-            month_label = current.strftime(date_format)
-            month_data[month_label] = 0.0
-            current += relativedelta(months=1)
-                
-        for t in trans_qs:
-            month_key = t['month'].strftime(date_format)
-            total_amount = float(t['total'] or 0)
-            
-            if month_key in month_data:
-                month_data[month_key] = total_amount
-            
-            transactions_agg_list.append({
-                'month': t['month'],
-                'total': total_amount
-            })
+        profit_data = OrderedDict()
 
-        months = list(month_data.keys()) if month_data else []
-        totals = [round(v, 2) for v in month_data.values()] if month_data else []
-        total_sum = round(sum(totals), 2) if totals else 0.0
-    
+        # 🔹 Przygotuj puste miesiące
+        current = start_month
+        for i in range(months_range):
+            label = current.strftime(date_format)
+            month_data[label] = 0.0
+            profit_data[label] = 0.0
+            current += relativedelta(months=1)
+
+        # 🔹 Przetwarzanie transakcji
+        for t in trans_qs:
+            month_key = t.month.strftime(date_format)
+
+            amount_from = Decimal(t.amount or 0)
+            amount_to = Decimal(t.result_amount or 0)
+            from_currency = t.from_currency.upper()
+            to_currency = t.to_currency.upper()
+
+            # Domyślnie zakładamy PLN
+            amount_from_pln = amount_from
+            amount_to_pln = amount_to
+
+            # Przeliczenie walut
+            if from_currency != "PLN":
+                rate_from = ExchangeRate.objects.filter(currency=from_currency).order_by('-date').first()
+                if rate_from:
+                    try:
+                        amount_from_pln = amount_from * Decimal(rate_from.rate)
+                    except (InvalidOperation, TypeError):
+                        pass
+
+            if to_currency != "PLN":
+                rate_to = ExchangeRate.objects.filter(currency=to_currency).order_by('-date').first()
+                if rate_to:
+                    try:
+                        amount_to_pln = amount_to * Decimal(rate_to.rate)
+                    except (InvalidOperation, TypeError):
+                        pass
+
+            # 🔸 Obrót w PLN
+            turnover_pln = float(amount_to_pln)
+
+            # 🔸 Zysk w PLN
+            if request.user.is_superuser:
+                # Broker zarabia, jeśli użytkownik dostaje mniej
+                profit_pln = float(amount_from_pln - amount_to_pln)
+            else:
+                # Użytkownik „zarabia”, jeśli po przeliczeniu ma więcej
+                profit_pln = float(amount_to_pln - amount_from_pln)
+
+            # 🔸 Dodaj wartości do słowników miesięcznych
+            if month_key in month_data:
+                month_data[month_key] += turnover_pln
+                profit_data[month_key] += profit_pln
+
+        # 🔹 Utwórz listy do szablonu
+        transactions_agg_list = [
+            {'month': datetime.strptime(month, date_format), 'total': total}
+            for month, total in month_data.items()
+        ]
+        profit_agg_list = [
+            {'month': datetime.strptime(month, date_format), 'profit': profit}
+            for month, profit in profit_data.items()
+        ]
+
+        months = list(month_data.keys())
+        totals = [round(v, 2) for v in month_data.values()]
+        profits = [round(v, 2) for v in profit_data.values()]
+        total_sum = round(sum(totals), 2)
+        total_profit = round(sum(profits), 2)
+
     context = {
         'months_json': months,
         'totals_json': totals,
         'transactions_agg': transactions_agg_list,
+        'profit_agg': profit_agg_list,
         'error_message': error_message,
         'total_sum': total_sum,
+        'total_profit': total_profit,
     }
     return render(request, 'backend_brokers/stats_dashboard.html', context)
