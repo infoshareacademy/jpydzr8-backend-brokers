@@ -1,20 +1,23 @@
 {% extends 'backend_brokers/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Strona główna{% endblock %}
+{% block title %}{% trans "Strona główna" %}{% endblock %}
 
 {% block content %}
 <div class="text-center">
-    <h1 class="display-4">Waluta Ekspress</h1>
-    <p class="lead">Globalny kantor wymiany walut</p>
+    <h1 class="display-4">{% trans "Waluta Ekspress" %}</h1>
+    <p class="lead">{% trans "Globalny kantor wymiany walut" %}</p>
 
     {% if not user.is_authenticated %}
-        <p class="mt-4">Zaloguj się lub zarejestruj, aby korzystać z portfeli i wymiany walut.</p>
+        <p class="mt-4">
+            {% trans "Zaloguj się lub zarejestruj, aby korzystać z portfeli i wymiany walut." %}
+        </p>
     {% endif %}
 
     <div class="image-container mt-4">
-        <img src="{% static 'backend_brokers/images/back.jpg' %}" 
-             alt="Tło walut" 
+        <img src="{% static 'backend_brokers/images/back.jpg' %}"
+             alt="{% trans 'Tło walut' %}"
              class="animated-image pulse">
     </div>
 </div>

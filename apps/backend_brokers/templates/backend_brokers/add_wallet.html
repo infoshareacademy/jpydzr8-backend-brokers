@@ -1,24 +1,31 @@
 {% extends 'backend_brokers/base.html' %}
 
-{% block title %}Dodaj nowy portfel{% endblock %}
+{% load static i18n %}
+
+{% block title %}{% trans "Dodaj nowy portfel" %}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="card shadow-sm mx-auto" style="max-width: 600px; background-color: #f8f9fa;">
         <div class="card-body">
-            <h1 class="card-title text-center mb-4" style="color: #6c757d;">Dodaj nowy portfel</h1>
-            
+            <h1 class="card-title text-center mb-4" style="color: #6c757d;">
+                {% trans "Dodaj nowy portfel" %}
+            </h1>
+
             <form method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <div class="d-flex justify-content-center mt-3">
-                    <button type="submit" class="btn btn-success">Dodaj</button>
+                    <button type="submit" class="btn btn-success">
+                        {% trans "Dodaj" %}
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 {% endblock %}
+
 
 <!-- <!DOCTYPE html>
 <html lang="en">

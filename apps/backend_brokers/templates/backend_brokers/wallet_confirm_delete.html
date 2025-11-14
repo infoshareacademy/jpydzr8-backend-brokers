@@ -1,29 +1,35 @@
 {% extends 'backend_brokers/base.html' %}
+{% load static i18n %}
 
-{% block title %}Usuń portfel{% endblock %}
+{% block title %}{% trans "Usuń portfel" %}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="card shadow-sm mx-auto" style="max-width: 600px;">
         <div class="card-body">
-            <h1 class="card-title text-center mb-4">Potwierdź usunięcie portfela: {{ wallet.wallet_id }}</h1>
-            
-            <p class="text-center">Saldo: <strong>{{ wallet.balance }}</strong></p>
+            <h1 class="card-title text-center mb-4">
+                {% blocktrans with wallet_id=wallet.wallet_id %}Potwierdź usunięcie portfela: {{ wallet_id }}{% endblocktrans %}
+            </h1>
+
+            <p class="text-center">
+                {% blocktrans with balance=wallet.balance %}Saldo: <strong>{{ balance }}</strong>{% endblocktrans %}
+            </p>
             <p class="text-center text-muted">
-                Aby usunąć konto, wpisz polecenie <i>usuń</i> w poniższe pole. Tej czynności nie można cofnąć.
+                {% blocktrans %}Aby usunąć konto, wpisz polecenie <i>usuń</i> w poniższe pole. Tej czynności nie można cofnąć.{% endblocktrans %}
             </p>
 
             <form method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <div class="text-center mt-3">
-                    <button type="submit" class="btn btn-danger">Usuń portfel</button>
+                    <button type="submit" class="btn btn-danger">{% trans "Usuń portfel" %}</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 {% endblock %}
+
 
 
 <!-- <!DOCTYPE html>

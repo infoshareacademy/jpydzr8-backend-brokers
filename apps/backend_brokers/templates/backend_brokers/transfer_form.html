@@ -1,24 +1,30 @@
 {% extends 'backend_brokers/base.html' %}
+{% load static i18n %}
 
-{% block title %}Przelew między kontami{% endblock %}
+{% block title %}{% trans "Przelew między kontami" %}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="card shadow-sm mx-auto" style="max-width: 600px;">
         <div class="card-body">
-            <h1 class="card-title text-center mb-4">Przelej środki między kontami</h1>
+            <h1 class="card-title text-center mb-4">
+                {% trans "Przelej środki między kontami" %}
+            </h1>
 
             <form method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <div class="text-center mt-3">
-                    <button type="submit" class="btn btn-success">Wykonaj przelew</button>
+                    <button type="submit" class="btn btn-success">
+                        {% trans "Wykonaj przelew" %}
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 {% endblock %}
+
 
 
 <!-- <!DOCTYPE html>

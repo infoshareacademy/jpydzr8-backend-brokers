@@ -1,12 +1,15 @@
 {% extends 'backend_brokers/base.html' %}
+{% load static i18n %}
 
-{% block title %}Utwórz konto{% endblock %}
+{% block title %}{% trans "Utwórz konto" %}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="card shadow-sm mx-auto" style="max-width: 500px;">
         <div class="card-body">
-            <h1 class="card-title text-center mb-4" style="color: #6c757d;">Utwórz konto</h1>
+            <h1 class="card-title text-center mb-4" style="color: #6c757d;">
+                {% trans "Utwórz konto" %}
+            </h1>
 
             {% if form.non_field_errors %}
                 <div class="alert alert-danger">
@@ -17,16 +20,20 @@
             <form method="post" novalidate>
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit" class="btn btn-success w-100">Zarejestruj</button>
+                <button type="submit" class="btn btn-success w-100">
+                    {% trans "Zarejestruj" %}
+                </button>
             </form>
 
             <p class="text-center mt-3">
-                Masz już konto? <a href="{% url 'login' %}">Zaloguj się</a>
+                {% trans "Masz już konto?" %}
+                <a href="{% url 'login' %}">{% trans "Zaloguj się" %}</a>
             </p>
         </div>
     </div>
 </div>
 {% endblock %}
+
 
 
 <!-- <!doctype html>
