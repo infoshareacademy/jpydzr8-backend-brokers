@@ -298,4 +298,15 @@ if (months.length === 0 || numericTotals.length === 0) {
     });
 }
 </script>
+
+{% if request.user.is_superuser %}
+<div class="card mb-4">
+    <div class="card-body text-center" >
+        <a href="{% url 'generate_user_report' %}" class="btn btn btn-success">
+            Pobierz raport użytkowników (PDF)
+        </a>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}
