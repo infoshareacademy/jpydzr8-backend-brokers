@@ -1,10 +1,11 @@
-import decimal
-import json
+#import decimal
+#import json
 from datetime import datetime, timedelta
 from collections import OrderedDict
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from .forms import (
     RegisterForm,
@@ -19,6 +20,7 @@ from .models import Profile, Wallet, Transaction, ExchangeRate
 from apps.backend_brokers.nbp_client import NBPClient
 from schwifty import IBAN
 import random
+import os
 from decimal import Decimal
 from django.utils import timezone
 from django_otp.decorators import otp_required
@@ -26,7 +28,14 @@ from django_otp.plugins.otp_totp.models import TOTPDevice
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 from dateutil.relativedelta import relativedelta
-
+from django.http import JsonResponse
+from django.http import HttpResponse
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.pagesizes import landscape, A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 def home(request):
     return render(request, "backend_brokers/home.html")
@@ -379,8 +388,6 @@ def deposit(request):
 
     return render(request, "backend_brokers/deposit.html", {"form": form})
 
-
-
 @login_required
 def stats_dashboard(request):
     user_profile = None
@@ -399,16 +406,20 @@ def stats_dashboard(request):
 
     if user_profile:
         now = datetime.now()
-
-        # 🔸 Superuser widzi 12 miesięcy, zwykły użytkownik 6
         months_range = 12 if request.user.is_superuser else 6
         start_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - relativedelta(months=months_range - 1)
 
-        # 🔸 Jeśli superuser – pokazujemy wszystkie transakcje
         if request.user.is_superuser:
             trans_qs = (
                 Transaction.objects
                 .filter(visible_to="user", created_at__gte=start_month)
+                .annotate(month=TruncMonth('created_at'))
+                .order_by('month')
+            )
+
+            profit_qs = (
+                Transaction.objects
+                .filter(visible_to="admin-profit", created_at__gte=start_month)
                 .annotate(month=TruncMonth('created_at'))
                 .order_by('month')
             )
@@ -419,12 +430,12 @@ def stats_dashboard(request):
                 .annotate(month=TruncMonth('created_at'))
                 .order_by('month')
             )
+            profit_qs = []
 
         date_format = '%b %Y'
         month_data = OrderedDict()
         profit_data = OrderedDict()
 
-        # 🔹 Przygotuj puste miesiące
         current = start_month
         for i in range(months_range):
             label = current.strftime(date_format)
@@ -432,57 +443,62 @@ def stats_dashboard(request):
             profit_data[label] = 0.0
             current += relativedelta(months=1)
 
-        # 🔹 Przetwarzanie transakcji
         for t in trans_qs:
             month_key = t.month.strftime(date_format)
 
-            amount_from = Decimal(t.amount or 0)
             amount_to = Decimal(t.result_amount or 0)
-            from_currency = t.from_currency.upper()
             to_currency = t.to_currency.upper()
-
-            # Domyślnie zakładamy PLN
-            amount_from_pln = amount_from
             amount_to_pln = amount_to
-
-            # Przeliczenie walut
-            if from_currency != "PLN":
-                rate_from = ExchangeRate.objects.filter(currency=from_currency).order_by('-date').first()
-                if rate_from:
-                    try:
-                        amount_from_pln = amount_from * Decimal(rate_from.rate)
-                    except (InvalidOperation, TypeError):
-                        pass
 
             if to_currency != "PLN":
                 rate_to = ExchangeRate.objects.filter(currency=to_currency).order_by('-date').first()
                 if rate_to:
-                    try:
+                    amount_to_pln = amount_to * Decimal(rate_to.rate)
+
+            month_data[month_key] += float(amount_to_pln)
+
+        if request.user.is_superuser:
+            for p in profit_qs:
+                month_key = p.month.strftime(date_format)
+                profit_amount = Decimal(p.amount or 0)
+                currency = p.to_currency.upper()
+
+                if currency != "PLN":
+                    rate = ExchangeRate.objects.filter(currency=currency).order_by('-date').first()
+                    if rate:
+                        profit_amount *= Decimal(rate.rate)
+
+                profit_data[month_key] += float(profit_amount)
+        else:
+            for t in trans_qs:
+                month_key = t.month.strftime(date_format)
+
+                amount_from = Decimal(t.amount or 0)
+                amount_to = Decimal(t.result_amount or 0)
+
+                from_currency = t.from_currency.upper()
+                to_currency = t.to_currency.upper()
+
+                amount_from_pln = amount_from
+                amount_to_pln = amount_to
+
+                if from_currency != "PLN":
+                    rate_from = ExchangeRate.objects.filter(currency=from_currency).order_by('-date').first()
+                    if rate_from:
+                        amount_from_pln = amount_from * Decimal(rate_from.rate)
+
+                if to_currency != "PLN":
+                    rate_to = ExchangeRate.objects.filter(currency=to_currency).order_by('-date').first()
+                    if rate_to:
                         amount_to_pln = amount_to * Decimal(rate_to.rate)
-                    except (InvalidOperation, TypeError):
-                        pass
 
-            # 🔸 Obrót w PLN
-            turnover_pln = float(amount_to_pln)
+                profit_data[month_key] += float(amount_to_pln - amount_from_pln)
 
-            # 🔸 Zysk w PLN
-            if request.user.is_superuser:
-                # Broker zarabia, jeśli użytkownik dostaje mniej
-                profit_pln = float(amount_from_pln - amount_to_pln)
-            else:
-                # Użytkownik „zarabia”, jeśli po przeliczeniu ma więcej
-                profit_pln = float(amount_to_pln - amount_from_pln)
-
-            # 🔸 Dodaj wartości do słowników miesięcznych
-            if month_key in month_data:
-                month_data[month_key] += turnover_pln
-                profit_data[month_key] += profit_pln
-
-        # 🔹 Utwórz listy do szablonu
         transactions_agg_list = [
             {'month': datetime.strptime(month, date_format), 'total': total}
             for month, total in month_data.items()
         ]
+
         profit_agg_list = [
             {'month': datetime.strptime(month, date_format), 'profit': profit}
             for month, profit in profit_data.items()
@@ -503,4 +519,167 @@ def stats_dashboard(request):
         'total_sum': total_sum,
         'total_profit': total_profit,
     }
+
     return render(request, 'backend_brokers/stats_dashboard.html', context)
+
+def estimate_exchange(request):
+    if request.method != "GET":
+        return JsonResponse({"error": "Invalid method"}, status=400)
+
+    source_wallet_id = request.GET.get("source_wallet")
+    destination_wallet_id = request.GET.get("destination_wallet")
+    amount = request.GET.get("amount")
+
+    if not source_wallet_id or not destination_wallet_id or not amount:
+        return JsonResponse({"error": "Missing params"}, status=400)
+
+    try:
+        source_wallet = Wallet.objects.get(id=source_wallet_id)
+        destination_wallet = Wallet.objects.get(id=destination_wallet_id)
+        amount = Decimal(amount)
+    except:
+        return JsonResponse({"error": "Invalid parameters"}, status=400)
+
+    source_rate = ExchangeRate.objects.filter(currency=source_wallet.currency).order_by("-date").first().rate
+    destination_rate = ExchangeRate.objects.filter(currency=destination_wallet.currency).order_by("-date").first().rate
+
+    SPREAD_VALUE_PROMO = Decimal("0.01")
+    SPREAD_VALUE_STANDARD = Decimal("0.02")
+
+    now = timezone.now()
+    transactions_current_month = Transaction.objects.filter(
+        user_id=request.user.id,
+        visible_to="user",
+        created_at__year=now.year,
+        created_at__month=now.month,
+    )
+    transactions_count = transactions_current_month.count()
+
+    spread_value = SPREAD_VALUE_PROMO if transactions_count < request.user.profile.transaction_limit else SPREAD_VALUE_STANDARD
+
+    exchange_rate = (source_rate / destination_rate) * (Decimal(1) - spread_value)
+
+    converted_amount = amount * exchange_rate
+
+    return JsonResponse({
+        "result": f"{converted_amount:.2f}",
+        "rate": f"{exchange_rate:.4f}",
+        "spread": str(spread_value)
+    })
+
+def wallet_to_pln(wallet):
+    """
+    Zwraca saldo walletu przeliczone na PLN na podstawie ostatniego dostępnego kursu.
+    """
+    if wallet.currency == "PLN":
+        return wallet.balance
+
+    rate = ExchangeRate.objects.filter(currency=wallet.currency).order_by("-date").first()
+    if not rate:
+        return Decimal(0)
+
+    try:
+        return wallet.balance * Decimal(rate.rate)
+    except:
+        return Decimal(0)
+
+def total_user_balance_pln(profile):
+    """
+    Sumuje wszystkie wallety użytkownika i zwraca saldo w PLN.
+    """
+    wallets = Wallet.objects.filter(user=profile)
+    return sum(wallet_to_pln(w) for w in wallets)
+
+def user_transaction_stats(profile):
+    """
+    Zwraca tuple: (wszystkie transakcje, transakcje z ostatnich 30 dni)
+    """
+    total_tx = Transaction.objects.filter(user=profile).count()
+    last_month = timezone.now() - timedelta(days=30)
+    recent_tx = Transaction.objects.filter(user=profile, created_at__gte=last_month).count()
+    return total_tx, recent_tx
+
+def generate_user_report(request):
+    if not request.user.is_superuser:
+        return HttpResponse("Brak dostępu", status=403)
+
+    font_path = os.path.join(
+    settings.BASE_DIR,
+    "apps",
+    "backend_brokers",
+    "static",
+    "backend_brokers",
+    "fonts",
+    "DejaVuSans.ttf"
+    )   
+    pdfmetrics.registerFont(TTFont("DejaVu", font_path))
+
+    # Tworzymy odpowiedź PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="raport_uzytkownicy.pdf"'
+
+    # PDF w orientacji poziomej A4
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=landscape(A4),
+        rightMargin=20,
+        leftMargin=20,
+        topMargin=20,
+        bottomMargin=20
+    )
+
+    styles = getSampleStyleSheet()
+    styles['Normal'].fontName = "DejaVu"
+    styles['Title'].fontName = "DejaVu"
+
+    elements = []
+
+    # Tytuł
+    title = Paragraph("Raport użytkowników – " + datetime.now().strftime("%Y-%m-%d"), styles['Title'])
+    elements.append(title)
+    elements.append(Spacer(1, 12))
+
+    # Nagłówki tabeli
+    data = [
+        ["Username", "Email", "Typ konta", "Saldo walletów", "Transakcji razem", "Transakcji w ostatnim miesiącu"]
+    ]
+
+    all_profiles = Profile.objects.all()
+
+    for profile in all_profiles:
+        total_balance = total_user_balance_pln(profile)
+        total_tx, recent_tx = user_transaction_stats(profile)
+
+
+        data.append([
+            profile.user.username,
+            profile.user.email,
+            "Biznesowe" if profile.account_type == "business" else "Osobiste",
+            f"{total_balance:.2f} zł",
+            total_tx,
+            recent_tx
+        ])
+
+    # Tabela z automatyczną szerokością kolumn
+    col_widths = [100, 180, 100, 120, 120, 150]  # dopasowane do poziomego A4
+
+    table = Table(data, colWidths=col_widths, repeatRows=1)
+
+    table.setStyle(TableStyle([
+        ('FONT', (0, 0), (-1, -1), 'DejaVu', 9),
+
+        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.black),
+
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('BOTTOMPADDING', (0,0), (-1,0), 8),
+        ('TOPPADDING', (0,0), (-1,0), 8),
+    ]))
+
+    elements.append(table)
+
+    doc.build(elements)
+    return response
