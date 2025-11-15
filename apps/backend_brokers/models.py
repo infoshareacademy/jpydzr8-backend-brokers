@@ -89,13 +89,14 @@ class Wallet(models.Model):
     ]  # Added to automate drop-down lists
     user = models.ForeignKey(
         "Profile",
+        verbose_name=_("Użytkownik"),
         on_delete=models.SET_DEFAULT,
         related_name="wallets",
         default="deleted_user",
     )
     wallet_id = models.CharField(_("Portfel"), max_length=50, unique=True)
     currency = models.CharField(_("Waluta"), max_length=10, choices=SELECTABLE_CURRENCIES)
-    iban = models.CharField(max_length=34, unique=True)
+    iban = models.CharField(_("IBAN"),max_length=34, unique=True)
     balance = models.DecimalField(_("Stan konta"), max_digits=12, decimal_places=2, default=0.00)
     wallet_status = models.CharField(_("Status portfela"), max_length=50, default="active")
 

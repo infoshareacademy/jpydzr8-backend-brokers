@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 16:52+0100\n"
+"POT-Creation-Date: 2025-11-15 15:48+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,7 +43,7 @@ msgstr "Repeat password"
 msgid "Ten email jest już użyty."
 msgstr "This email is already in use."
 
-#: apps/backend_brokers/forms.py:55
+#: apps/backend_brokers/forms.py:55 apps/backend_brokers/views.py:646
 msgid "Email"
 msgstr "Email"
 
@@ -56,6 +56,7 @@ msgid "Adres"
 msgstr "Address"
 
 #: apps/backend_brokers/forms.py:73 apps/backend_brokers/models.py:27
+#: apps/backend_brokers/views.py:646
 msgid "Typ konta"
 msgstr "Account Type"
 
@@ -83,8 +84,8 @@ msgstr "Destination account"
 msgid "Kwota"
 msgstr "Amount"
 
-#: apps/backend_brokers/forms.py:117 apps/backend_brokers/models.py:96
-#: apps/backend_brokers/models.py:103
+#: apps/backend_brokers/forms.py:117 apps/backend_brokers/models.py:97
+#: apps/backend_brokers/models.py:104
 msgid "Portfel"
 msgstr "Wallet"
 
@@ -224,23 +225,31 @@ msgstr "SDR (IMF)"
 msgid "rand (Republika Południowej Afryki)"
 msgstr "South African rand"
 
-#: apps/backend_brokers/models.py:97 apps/backend_brokers/models.py:132
+#: apps/backend_brokers/models.py:92 apps/backend_brokers/views.py:646
+msgid "Użytkownik"
+msgstr "User"
+
+#: apps/backend_brokers/models.py:98 apps/backend_brokers/models.py:133
 msgid "Waluta"
 msgstr "Currency"
 
 #: apps/backend_brokers/models.py:99
+msgid "IBAN"
+msgstr "IBAN"
+
+#: apps/backend_brokers/models.py:100
 msgid "Stan konta"
 msgstr "Account Balance"
 
-#: apps/backend_brokers/models.py:100
+#: apps/backend_brokers/models.py:101
 msgid "Status portfela"
 msgstr "Add Wallet"
 
-#: apps/backend_brokers/models.py:131
+#: apps/backend_brokers/models.py:132
 msgid "Data"
 msgstr "Date"
 
-#: apps/backend_brokers/models.py:133
+#: apps/backend_brokers/models.py:134
 msgid "Kurs wymiany"
 msgstr "Exchange Rates"
 
@@ -298,11 +307,12 @@ msgstr "Register"
 msgid "Zaloguj się"
 msgstr "Sign In"
 
-#: apps/backend_brokers/templates/backend_brokers/deposit.html:6
-msgid "Zasil portfel"
-msgstr "Deposit to wallet"
+#: apps/backend_brokers/templates/backend_brokers/deposit.html:5
+#: apps/backend_brokers/templates/backend_brokers/list_of_wallets.html:14
+msgid "Zasil konto"
+msgstr "Fund Account"
 
-#: apps/backend_brokers/templates/backend_brokers/deposit.html:10
+#: apps/backend_brokers/templates/backend_brokers/deposit.html:9
 msgid "Zasil"
 msgstr "Deposit"
 
@@ -352,10 +362,6 @@ msgstr "Your Wallets"
 msgid "Dodaj portfel"
 msgstr "Add Wallet"
 
-#: apps/backend_brokers/templates/backend_brokers/list_of_wallets.html:14
-msgid "Zasil konto"
-msgstr "Fund Account"
-
 #: apps/backend_brokers/templates/backend_brokers/list_of_wallets.html:26
 msgid "Brak portfeli"
 msgstr "No Wallets"
@@ -402,7 +408,6 @@ msgid "Nie masz konta?"
 msgstr "Don't have an account?"
 
 #: apps/backend_brokers/templates/backend_brokers/profile.html:14
-#| msgid "Dane logowania (User)"
 msgid "Dane logowania (Użytkownik)"
 msgstr "Login Data (User)"
 
@@ -411,7 +416,6 @@ msgid "Nazwa użytkownika:"
 msgstr "Username:"
 
 #: apps/backend_brokers/templates/backend_brokers/profile.html:17
-#| msgid "Dane profilu (Profile)"
 msgid "Dane profilu (Profil)"
 msgstr "Profile Data (Profile)"
 
@@ -560,6 +564,10 @@ msgstr "Not enough data to generate transaction chart."
 msgid "Udział miesięczny w sumie transakcji"
 msgstr "Monthly share of total transactions"
 
+#: apps/backend_brokers/templates/backend_brokers/stats_dashboard.html:319
+msgid "Pobierz raport użytkowników (PDF)"
+msgstr "Download the user report (PDF)"
+
 #: apps/backend_brokers/templates/backend_brokers/too_many_wallets.html:4
 msgid "Limit portfeli przekroczony"
 msgstr "Wallet Limit Exceeded"
@@ -592,6 +600,18 @@ msgstr "Transfer funds between accounts"
 #: apps/backend_brokers/templates/backend_brokers/transfer_form.html:19
 msgid "Wykonaj przelew"
 msgstr "Execute Transfer"
+
+#: apps/backend_brokers/templates/backend_brokers/transfer_form.html:30
+msgid "Operacja w toku"
+msgstr "Operation in progress"
+
+#: apps/backend_brokers/templates/backend_brokers/transfer_form.html:33
+msgid "Przewidywana kwota po wymianie:"
+msgstr "Estimated amount after exchange:"
+
+#: apps/backend_brokers/templates/backend_brokers/transfer_form.html:34
+msgid "Kurs:"
+msgstr "Exchange rate:"
 
 #: apps/backend_brokers/templates/backend_brokers/wallet.html:4
 #: apps/backend_brokers/templates/backend_brokers/wallet.html:10
@@ -701,28 +721,57 @@ msgstr "Cannot delete wallet"
 msgid "Powrót do listy portfeli"
 msgstr "Back to wallet list"
 
-#: apps/backend_brokers/views.py:205
+#: apps/backend_brokers/views.py:214
 msgid ""
 "Portfel nie może zostać usunięty, ponieważ są na nim środki. Opróżnij konto "
 "przed jego usunięciem."
 msgstr ""
 "This wallet cannot be deleted because it is not empty. Balance must be 0.00"
 
-#: apps/backend_brokers/views.py:257
+#: apps/backend_brokers/views.py:266
 msgid "Nie możesz przelać środków na to samo konto."
 msgstr "You cannot transfer funds to the same account."
 
-#: apps/backend_brokers/views.py:259
+#: apps/backend_brokers/views.py:268
 msgid "Brak wystarczających środków."
 msgstr "Insufficient funds."
 
-#: apps/backend_brokers/views.py:261
+#: apps/backend_brokers/views.py:270
 msgid "Nie można wykonać przelewu na ujemną kwotę."
 msgstr "Cannot perform a transfer with a negative amount."
 
-#: apps/backend_brokers/views.py:393
+#: apps/backend_brokers/views.py:400
 msgid "Wystąpił nieoczekiwany błąd podczas ładowania profilu."
 msgstr "An unexpected error occurred while loading the profile."
+
+#: apps/backend_brokers/views.py:620
+#| msgid "Brak portfeli"
+msgid "raport"
+msgstr "report"
+
+#: apps/backend_brokers/views.py:640
+msgid "Raport użytkowników – "
+msgstr "User Report –"
+
+#: apps/backend_brokers/views.py:646
+msgid "Saldo portfeli"
+msgstr "Wallet balance"
+
+#: apps/backend_brokers/views.py:646
+msgid "Transakcji razem"
+msgstr "Transactions"
+
+#: apps/backend_brokers/views.py:646
+msgid "Transakcji w ostatnim miesiącu"
+msgstr "Transactions in the last month"
+
+#: apps/backend_brokers/views.py:659
+msgid "Biznesowe"
+msgstr "Biznes"
+
+#: apps/backend_brokers/views.py:659
+msgid "Osobiste"
+msgstr "Personal"
 
 #: project/settings.py:125
 msgid "Polish"
@@ -2621,6 +2670,16 @@ msgstr "Connect, get help, or contribute"
 #: venv/lib/python3.12/site-packages/pycountry/tests/test_general.py:184
 msgid "Germany"
 msgstr "Germany"
+
+#~| msgid "Raport użytkowników – "
+#~ msgid "Raport_użytkowników"
+#~ msgstr "User_Report"
+
+#~ msgid "Przekazanie pieniędzy powiodło się!"
+#~ msgstr "Money transfer successful!"
+
+#~ msgid "Zasil portfel"
+#~ msgstr "Deposit to wallet"
 
 #~ msgid "Logowanie"
 #~ msgstr "Sign In"

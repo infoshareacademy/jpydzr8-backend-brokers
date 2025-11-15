@@ -27,11 +27,11 @@
                 font-weight:bold;
                 color:#0f7b0f;
                 margin-top:20px;
-            ">Przekazanie pieniędzy powiodło się!
+            ">{% trans "Operacja w toku" %}
             </div>
             <div id="exchange-preview" class="alert alert-success mt-3" style="display: none;">
-                <strong>Przewidywana kwota po wymianie:</strong> <span id="preview-result"></span><br>
-                <small>Kurs: <span id="preview-rate"></span></small>
+                <strong>{% trans "Przewidywana kwota po wymianie:" %}</strong> <span id="preview-result"></span><br>
+                <small>{% trans "Kurs:" %} <span id="preview-rate"></span></small>
             </div>
         </div>
     </div>

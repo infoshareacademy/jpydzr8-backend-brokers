@@ -617,7 +617,8 @@ def generate_user_report(request):
 
     # Tworzymy odpowiedź PDF
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="raport_uzytkownicy.pdf"'
+    filename = _("raport") + ".pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
     # PDF w orientacji poziomej A4
     doc = SimpleDocTemplate(
@@ -636,13 +637,13 @@ def generate_user_report(request):
     elements = []
 
     # Tytuł
-    title = Paragraph("Raport użytkowników – " + datetime.now().strftime("%Y-%m-%d"), styles['Title'])
+    title = Paragraph(_("Raport użytkowników – ") + datetime.now().strftime("%Y-%m-%d"), styles['Title'])
     elements.append(title)
     elements.append(Spacer(1, 12))
 
     # Nagłówki tabeli
     data = [
-        ["Username", "Email", "Typ konta", "Saldo walletów", "Transakcji razem", "Transakcji w ostatnim miesiącu"]
+        [_("Użytkownik"), _("Email"), _("Typ konta"), _("Saldo portfeli"), _("Transakcji razem"), _("Transakcji w ostatnim miesiącu")]
     ]
 
     all_profiles = Profile.objects.all()
@@ -655,7 +656,7 @@ def generate_user_report(request):
         data.append([
             profile.user.username,
             profile.user.email,
-            "Biznesowe" if profile.account_type == "business" else "Osobiste",
+            _("Biznesowe") if profile.account_type == "business" else _("Osobiste"),
             f"{total_balance:.2f} zł",
             total_tx,
             recent_tx

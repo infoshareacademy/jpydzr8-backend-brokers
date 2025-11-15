@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 16:52+0100\n"
+"POT-Creation-Date: 2025-11-15 15:48+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -45,7 +45,7 @@ msgstr "Potwierdzenie hasła"
 msgid "Ten email jest już użyty."
 msgstr "Ten email jest już użyty."
 
-#: apps/backend_brokers/forms.py:55
+#: apps/backend_brokers/forms.py:55 apps/backend_brokers/views.py:646
 msgid "Email"
 msgstr "Email"
 
@@ -58,6 +58,7 @@ msgid "Adres"
 msgstr "Adres"
 
 #: apps/backend_brokers/forms.py:73 apps/backend_brokers/models.py:27
+#: apps/backend_brokers/views.py:646
 msgid "Typ konta"
 msgstr "Typ konta"
 
@@ -85,8 +86,8 @@ msgstr "Konto docelowe"
 msgid "Kwota"
 msgstr "Kwota"
 
-#: apps/backend_brokers/forms.py:117 apps/backend_brokers/models.py:96
-#: apps/backend_brokers/models.py:103
+#: apps/backend_brokers/forms.py:117 apps/backend_brokers/models.py:97
+#: apps/backend_brokers/models.py:104
 msgid "Portfel"
 msgstr "Portfel"
 
@@ -226,23 +227,31 @@ msgstr "SDR (MFW)"
 msgid "rand (Republika Południowej Afryki)"
 msgstr "rand (Republika Południowej Afryki)"
 
-#: apps/backend_brokers/models.py:97 apps/backend_brokers/models.py:132
+#: apps/backend_brokers/models.py:92 apps/backend_brokers/views.py:646
+msgid "Użytkownik"
+msgstr "Użytkownik"
+
+#: apps/backend_brokers/models.py:98 apps/backend_brokers/models.py:133
 msgid "Waluta"
 msgstr "Waluta"
 
 #: apps/backend_brokers/models.py:99
+msgid "IBAN"
+msgstr "IBAN"
+
+#: apps/backend_brokers/models.py:100
 msgid "Stan konta"
 msgstr "Stan konta"
 
-#: apps/backend_brokers/models.py:100
+#: apps/backend_brokers/models.py:101
 msgid "Status portfela"
 msgstr "Status portfela"
 
-#: apps/backend_brokers/models.py:131
+#: apps/backend_brokers/models.py:132
 msgid "Data"
 msgstr "Data"
 
-#: apps/backend_brokers/models.py:133
+#: apps/backend_brokers/models.py:134
 msgid "Kurs wymiany"
 msgstr "Kurs wymiany"
 
@@ -300,11 +309,12 @@ msgstr "Zarejestruj się"
 msgid "Zaloguj się"
 msgstr "Zaloguj się"
 
-#: apps/backend_brokers/templates/backend_brokers/deposit.html:6
-msgid "Zasil portfel"
-msgstr "Zasil portfel"
+#: apps/backend_brokers/templates/backend_brokers/deposit.html:5
+#: apps/backend_brokers/templates/backend_brokers/list_of_wallets.html:14
+msgid "Zasil konto"
+msgstr "Zasil konto"
 
-#: apps/backend_brokers/templates/backend_brokers/deposit.html:10
+#: apps/backend_brokers/templates/backend_brokers/deposit.html:9
 msgid "Zasil"
 msgstr "Zasil"
 
@@ -353,10 +363,6 @@ msgstr "Twoje portfele"
 #: apps/backend_brokers/templates/backend_brokers/list_of_wallets.html:11
 msgid "Dodaj portfel"
 msgstr "Dodaj portfel"
-
-#: apps/backend_brokers/templates/backend_brokers/list_of_wallets.html:14
-msgid "Zasil konto"
-msgstr "Zasil konto"
 
 #: apps/backend_brokers/templates/backend_brokers/list_of_wallets.html:26
 msgid "Brak portfeli"
@@ -565,6 +571,10 @@ msgstr "Brak wystarczających danych do wygenerowania wykresu transakcji."
 msgid "Udział miesięczny w sumie transakcji"
 msgstr "Udział miesięczny w sumie transakcji"
 
+#: apps/backend_brokers/templates/backend_brokers/stats_dashboard.html:319
+msgid "Pobierz raport użytkowników (PDF)"
+msgstr "Pobierz raport użytkowników (PDF)"
+
 #: apps/backend_brokers/templates/backend_brokers/too_many_wallets.html:4
 msgid "Limit portfeli przekroczony"
 msgstr "Limit portfeli przekroczony"
@@ -597,6 +607,18 @@ msgstr "Przelej środki między kontami"
 #: apps/backend_brokers/templates/backend_brokers/transfer_form.html:19
 msgid "Wykonaj przelew"
 msgstr "Wykonaj przelew"
+
+#: apps/backend_brokers/templates/backend_brokers/transfer_form.html:30
+msgid "Operacja w toku"
+msgstr "Operacja w toku"
+
+#: apps/backend_brokers/templates/backend_brokers/transfer_form.html:33
+msgid "Przewidywana kwota po wymianie:"
+msgstr "Przewidywana kwota po wymianie:"
+
+#: apps/backend_brokers/templates/backend_brokers/transfer_form.html:34
+msgid "Kurs:"
+msgstr "Kurs:"
 
 #: apps/backend_brokers/templates/backend_brokers/wallet.html:4
 #: apps/backend_brokers/templates/backend_brokers/wallet.html:10
@@ -707,7 +729,7 @@ msgstr "Nie można usunąć portfela"
 msgid "Powrót do listy portfeli"
 msgstr "Powrót do listy portfeli"
 
-#: apps/backend_brokers/views.py:205
+#: apps/backend_brokers/views.py:214
 msgid ""
 "Portfel nie może zostać usunięty, ponieważ są na nim środki. Opróżnij konto "
 "przed jego usunięciem."
@@ -715,21 +737,50 @@ msgstr ""
 "Portfel nie może zostać usunięty, ponieważ są na nim środki. Opróżnij konto "
 "przed jego usunięciem."
 
-#: apps/backend_brokers/views.py:257
+#: apps/backend_brokers/views.py:266
 msgid "Nie możesz przelać środków na to samo konto."
 msgstr "Nie możesz przelać środków na to samo konto."
 
-#: apps/backend_brokers/views.py:259
+#: apps/backend_brokers/views.py:268
 msgid "Brak wystarczających środków."
 msgstr "Brak wystarczających środków."
 
-#: apps/backend_brokers/views.py:261
+#: apps/backend_brokers/views.py:270
 msgid "Nie można wykonać przelewu na ujemną kwotę."
 msgstr "Nie można wykonać przelewu na ujemną kwotę."
 
-#: apps/backend_brokers/views.py:393
+#: apps/backend_brokers/views.py:400
 msgid "Wystąpił nieoczekiwany błąd podczas ładowania profilu."
 msgstr "Wystąpił nieoczekiwany błąd podczas ładowania profilu."
+
+#: apps/backend_brokers/views.py:620
+#| msgid "Brak portfeli"
+msgid "raport"
+msgstr "raport"
+
+#: apps/backend_brokers/views.py:640
+msgid "Raport użytkowników – "
+msgstr "Raport użytkowników – "
+
+#: apps/backend_brokers/views.py:646
+msgid "Saldo portfeli"
+msgstr "Saldo portfeli"
+
+#: apps/backend_brokers/views.py:646
+msgid "Transakcji razem"
+msgstr "Transakcji razem"
+
+#: apps/backend_brokers/views.py:646
+msgid "Transakcji w ostatnim miesiącu"
+msgstr "Transakcji w ostatnim miesiącu"
+
+#: apps/backend_brokers/views.py:659
+msgid "Biznesowe"
+msgstr "Biznesowe"
+
+#: apps/backend_brokers/views.py:659
+msgid "Osobiste"
+msgstr "Osobiste"
 
 #: project/settings.py:125
 msgid "Polish"
@@ -1117,7 +1168,7 @@ msgstr ""
 #: venv/lib/python3.12/site-packages/click/core.py:2956
 #, python-brace-format
 msgid "env var: {var}"
-msgstr "zmienna środowiskowa: {var}"
+msgstr "env var: {var}"
 
 #: venv/lib/python3.12/site-packages/click/core.py:2959
 #, python-brace-format
@@ -2639,6 +2690,16 @@ msgstr "Połącz się, uzyskaj pomoc lub wnieś wkład"
 #: venv/lib/python3.12/site-packages/pycountry/tests/test_general.py:184
 msgid "Germany"
 msgstr "Niemcy"
+
+#~| msgid "Raport użytkowników – "
+#~ msgid "Raport_użytkowników"
+#~ msgstr "Raport_użytkowników"
+
+#~ msgid "Przekazanie pieniędzy powiodło się!"
+#~ msgstr "Przekazanie pieniędzy powiodło się!"
+
+#~ msgid "Zasil portfel"
+#~ msgstr "Zasil portfel"
 
 #~ msgid "Logowanie"
 #~ msgstr "Logowanie"
