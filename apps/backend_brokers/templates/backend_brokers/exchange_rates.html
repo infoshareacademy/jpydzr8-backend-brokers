@@ -1,22 +1,30 @@
 {% extends 'backend_brokers/base.html' %}
+{% load static i18n %}
 
-{% block title %}Strona główna{% endblock %}
+{% block title %}{% trans "Strona główna" %}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="card shadow-sm mx-auto" style="max-width: 600px; background-color: #f8f9fa;">
         <div class="card-body">
-            <h1 class="card-title text-center mb-4 text-secondary fw-bold">Kursy walut NBP</h1>
-                <p class="text-center text-muted mb-4 fs-5">
-                    Aktualne na dzień: {{ date }}
-                </p>
+            <h1 class="card-title text-center mb-4 text-secondary fw-bold">
+                {% trans "Kursy walut NBP" %}
+            </h1>
+            <p class="text-center text-muted mb-4 fs-5">
+                {% blocktrans %}Aktualne na dzień: {{ date }}{% endblocktrans %}
+            </p>
 
             <ul class="list-unstyled text-center">
                 {% for code, rate in rates.items %}
-                    <li class="mb-2">1 {{ code }} = {{ rate }} PLN</li>
+                    <li class="mb-2">
+                        {% blocktrans with code=code rate=rate %}
+                            1 {{ code }} = {{ rate }} PLN
+                        {% endblocktrans %}
+                    </li>
                 {% endfor %}
             </ul>
         </div>
     </div>
 </div>
 {% endblock %}
+

@@ -1,26 +1,30 @@
 {% extends 'backend_brokers/base.html' %}
+{% load static i18n %}
 
-{% block title %}Limit portfeli przekroczony{% endblock %}
+{% block title %}{% trans "Limit portfeli przekroczony" %}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="card shadow-sm mx-auto" style="max-width: 600px;">
         <div class="card-body text-center">
-            <h1 class="card-title mb-4" style="color: #dc3545;">Houston, mamy problem!</h1>
+            <h1 class="card-title mb-4 text-danger">
+                {% trans "Houston, mamy problem!" %}
+            </h1>
 
             <p class="mb-3">
-                Wyczerpałeś limit liczby portfeli obsługiwanych w ramach Twojego konta.
+                {% trans "Wyczerpałeś limit liczby portfeli obsługiwanych w ramach Twojego konta." %}
             </p>
             <p>
-                Zaktualizuj swój plan serwisowy, aby dodać kolejny portfel.
+                {% trans "Zaktualizuj swój plan serwisowy, aby dodać kolejny portfel." %}
             </p>
 
-            <a href="{% url 'profile_edit' %}" class="btn btn-primary mt-3">Zaktualizuj plan</a>
+            <a href="{% url 'profile_edit' %}" class="btn btn-primary mt-3">
+                {% trans "Zaktualizuj plan" %}
+            </a>
         </div>
     </div>
 </div>
 {% endblock %}
-
 
 <!-- <!DOCTYPE html>
 <html lang="en">

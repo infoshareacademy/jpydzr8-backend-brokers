@@ -1,36 +1,48 @@
 {% extends 'backend_brokers/base.html' %}
+{% load static i18n %}
 
-{% block title %}Twój profil{% endblock %}
+{% block title %}{% trans "Twój profil" %}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="card shadow-sm mx-auto" style="max-width: 600px;">
         <div class="card-body">
-            <h1 class="card-title text-center mb-4" style="color: #6c757d;">Twój profil</h1>
+            <h1 class="card-title text-center mb-4" style="color: #6c757d;">
+                {% trans "Twój profil" %}
+            </h1>
 
-            <h4>Dane logowania (User)</h4>
-            <p><strong>Username:</strong> {{ request.user.username }}</p>
+            <h4>{% trans "Dane logowania (Użytkownik)" %}</h4>
+            <p><strong>{% trans "Nazwa użytkownika:" %}</strong> {{ request.user.username }}</p>
 
-            <h4>Dane profilu (Profile)</h4>
-            <p><strong>Telefon:</strong> {{ request.user.profile.phone_number|default:"—" }}</p>
-            <p><strong>Adres:</strong> {{ request.user.profile.address|default:"—" }}</p>
-            <p><strong>Typ konta:</strong> {{ request.user.profile.get_account_type_display }}</p>
-            <p><strong>Data urodzenia:</strong> {{ request.user.profile.date_of_birth|date:"Y-m-d"|default:"—" }}</p>
-            <p><strong>Limity:</strong> transakcje {{ request.user.profile.transaction_limit }},
-               portfele {{ request.user.profile.wallet_limit }}</p>
+            <h4>{% trans "Dane profilu (Profil)" %}</h4>
+            <p><strong>{% trans "Telefon:" %}</strong> {{ request.user.profile.phone_number|default:"—" }}</p>
+            <p><strong>{% trans "Adres:" %}</strong> {{ request.user.profile.address|default:"—" }}</p>
+            <p><strong>{% trans "Typ konta:" %}</strong> {{ request.user.profile.get_account_type_display }}</p>
+            <p><strong>{% trans "Data urodzenia:" %}</strong> {{ request.user.profile.date_of_birth|date:"Y-m-d"|default:"—" }}</p>
+            <p>
+                <strong>{% trans "Limity:" %}</strong>
+                {% blocktrans with t_limit=request.user.profile.transaction_limit w_limit=request.user.profile.wallet_limit %}
+                    transakcje {{ t_limit }}, portfele {{ w_limit }}
+                {% endblocktrans %}
+            </p>
 
             <div class="mt-4">
-                <a href="{% url 'profile_edit' %}" class="btn btn-primary">Edytuj profil</a>
+                <a href="{% url 'profile_edit' %}" class="btn btn-primary">
+                    {% trans "Edytuj profil" %}
+                </a>
             </div>
 
             <div class="mt-4">
-                <a href="{% url 'two_factor:profile' %}" class="btn btn-primary">Zarządzaj 2FA</a>
+                <a href="{% url 'two_factor:profile' %}" class="btn btn-primary">
+                    {% trans "Zarządzaj 2FA" %}
+                </a>
             </div>
 
         </div>
     </div>
 </div>
 {% endblock %}
+
 
 
 <!-- <!doctype html>

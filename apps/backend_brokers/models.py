@@ -3,6 +3,7 @@ from random import choices
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _
 
 ACCOUNT_CHOICES = (("personal", "Personal"), ("business", "Business"))
 
@@ -20,12 +21,12 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     # user data
-    phone_number = models.CharField(max_length=20, blank=True)
-    address = models.CharField(max_length=255, blank=True)
+    phone_number = models.CharField(_("Telefon"), max_length=20, blank=True)
+    address = models.CharField(_("Adres"), max_length=255, blank=True)
     account_type = models.CharField(
-        max_length=20, choices=ACCOUNT_CHOICES, default="personal"
+        _("Typ konta"), max_length=20, choices=ACCOUNT_CHOICES, default="personal"
     )
-    date_of_birth = models.DateField(null=True, blank=True)
+    date_of_birth = models.DateField(_("Data urodzenia"), null=True, blank=True)
 
     # limits and counter (for transactions)
     transaction_limit = models.PositiveIntegerField(default=10)
@@ -51,57 +52,56 @@ class Profile(models.Model):
 
 class Wallet(models.Model):
     SELECTABLE_CURRENCIES = [
-        ("PLN", "polski nowy złoty"),
-        ("EUR", "euro"),
-        ("USD", "dolar amerykański"),
-        ("AUD", "dolar australijski"),
-        ("BGN", "lew (Bułgaria)"),
-        ("BRL", "real (Brazylia)"),
-        ("CAD", "dolar kanadyjski"),
-        ("CHF", "frank szwajcarski"),
-        ("CLP", "peso chilijskie"),
-        ("CNY", "yuan renminbi (Chiny)"),
-        ("CZK", "korona czeska"),
-        ("DKK", "korona duńska"),
-        ("GBP", "funt szterling"),
-        ("HKD", "dolar Hongkongu"),
-        ("HUF", "forint (Węgry)"),
-        ("IDR", "rupia indonezyjska"),
-        ("ILS", "nowy izraelski szekel"),
-        ("INR", "rupia indyjska"),
-        ("ISK", "korona islandzka"),
-        ("JPY", "jen (Japonia)"),
-        ("KRW", "won południowokoreański"),
-        ("MXN", "peso meksykańskie"),
-        ("MYR", "ringgit (Malezja)"),
-        ("NOK", "korona norweska"),
-        ("NZD", "dolar nowozelandzki"),
-        ("PHP", "peso filipińskie"),
-        ("RON", "lej rumuński"),
-        ("SEK", "korona szwedzka"),
-        ("SGD", "dolar singapurski"),
-        ("THB", "bat (Tajlandia)"),
-        ("TRY", "lira turecka"),
-        ("UAH", "hrywna (Ukraina)"),
-        ("XDR", "SDR (MFW)"),
-        ("ZAR", "rand (Republika Południowej Afryki)"),
+        ("PLN", _("polski nowy złoty")),
+        ("EUR", _("euro")),
+        ("USD", _("dolar amerykański")),
+        ("AUD", _("dolar australijski")),
+        ("BGN", _("lew (Bułgaria)")),
+        ("BRL", _("real (Brazylia)")),
+        ("CAD", _("dolar kanadyjski")),
+        ("CHF", _("frank szwajcarski")),
+        ("CLP", _("peso chilijskie")),
+        ("CNY", _("yuan renminbi (Chiny)")),
+        ("CZK", _("korona czeska")),
+        ("DKK", _("korona duńska")),
+        ("GBP", _("funt szterling")),
+        ("HKD", _("dolar Hongkongu")),
+        ("HUF", _("forint (Węgry)")),
+        ("IDR", _("rupia indonezyjska")),
+        ("ILS", _("nowy izraelski szekel")),
+        ("INR", _("rupia indyjska")),
+        ("ISK", _("korona islandzka")),
+        ("JPY", _("jen (Japonia)")),
+        ("KRW", _("won południowokoreański")),
+        ("MXN", _("peso meksykańskie")),
+        ("MYR", _("ringgit (Malezja)")),
+        ("NOK", _("korona norweska")),
+        ("NZD", _("dolar nowozelandzki")),
+        ("PHP", _("peso filipińskie")),
+        ("RON", _("lej rumuński")),
+        ("SEK", _("korona szwedzka")),
+        ("SGD", _("dolar singapurski")),
+        ("THB", _("bat (Tajlandia)")),
+        ("TRY", _("lira turecka")),
+        ("UAH", _("hrywna (Ukraina)")),
+        ("XDR", _("SDR (MFW)")),
+        ("ZAR", _("rand (Republika Południowej Afryki)")),
     ]  # Added to automate drop-down lists
     user = models.ForeignKey(
-        Profile,
+        "Profile",
+        verbose_name=_("Użytkownik"),
         on_delete=models.SET_DEFAULT,
         related_name="wallets",
         default="deleted_user",
     )
-    wallet_id = models.CharField(max_length=50, unique=True)
-    currency = models.CharField(max_length=10, choices=SELECTABLE_CURRENCIES)
-    iban = models.CharField(max_length=34, unique=True)
-    balance = models.DecimalField(
-        max_digits=12, decimal_places=2, default=0.00
-    )  # Adjusted per Django Antipatterns
-    wallet_status = models.CharField(max_length=50, default="active")
+    wallet_id = models.CharField(_("Portfel"), max_length=50, unique=True)
+    currency = models.CharField(_("Waluta"), max_length=10, choices=SELECTABLE_CURRENCIES)
+    iban = models.CharField(_("IBAN"),max_length=34, unique=True)
+    balance = models.DecimalField(_("Stan konta"), max_digits=12, decimal_places=2, default=0.00)
+    wallet_status = models.CharField(_("Status portfela"), max_length=50, default="active")
 
     def __str__(self):
-        return f"Portfel {self.wallet_id} ({self.balance} {self.currency})"
+        return "{} {} ({} {})".format(_("Portfel"), self.wallet_id, self.balance, self.currency)
 
 
 class Transaction(models.Model):
@@ -129,9 +129,9 @@ class Transaction(models.Model):
 
 
 class ExchangeRate(models.Model):
-    date = models.DateField()
-    currency = models.CharField(max_length=3)
-    rate = models.DecimalField(max_digits=12, decimal_places=4)
+    date = models.DateField(_("Data"))
+    currency = models.CharField(_("Waluta"), max_length=3)
+    rate = models.DecimalField(_("Kurs wymiany"), max_digits=12, decimal_places=4)
 
     class Meta:
         unique_together = ("date", "currency")

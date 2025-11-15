@@ -1,8 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _
 from .models import Profile, Wallet
-
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -17,6 +17,14 @@ class RegisterForm(UserCreationForm):
             "password1",
             "password2",
         ]
+
+        labels = {
+            "username": _("Nazwa użytkownika"),
+            "first_name": _("Imię"),
+            "last_name": _("Nazwisko"),
+            "password1": _("Hasło"),
+            "password2": _("Potwierdzenie hasła"),
+        }
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -33,7 +41,7 @@ class RegisterForm(UserCreationForm):
     def clean_email(self):
         email = self.cleaned_data["email"].lower().strip()
         if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("Ten email jest już użyty.")
+            raise forms.ValidationError(_("Ten email jest już użyty."))
         return email
 
 
@@ -42,16 +50,16 @@ class UserEditForm(forms.ModelForm):
         model = User
         fields = ["first_name", "last_name", "email"]
         labels = {
-            "first_name": "Imię",
-            "last_name": "Nazwisko",
-            "email": "Email",
+            "first_name": _("Imię"),
+            "last_name": _("Nazwisko"),
+            "email": _("Email"),
         }
 
     def clean_email(self):
         email = self.cleaned_data["email"].lower().strip()
         qs = User.objects.filter(email=email).exclude(pk=self.instance.pk)
         if qs.exists():
-            raise forms.ValidationError("Ten email jest już użyty.")
+            raise forms.ValidationError(_("Ten email jest już użyty."))
         return email
 
 
@@ -60,10 +68,10 @@ class ProfileEditForm(forms.ModelForm):
         model = Profile
         fields = ["phone_number", "address", "account_type", "date_of_birth"]
         labels = {
-            "phone_number": "Telefon",
-            "address": "Adres",
-            "account_type": "Typ konta",
-            "date_of_birth": "Data urodzenia",
+            "phone_number": _("Telefon"),
+            "address": _("Adres"),
+            "account_type": _("Typ konta"),
+            "date_of_birth": _("Data urodzenia"),
         }
         widgets = {
             "date_of_birth": forms.DateInput(attrs={"type": "date"}),
@@ -80,23 +88,23 @@ class AddWalletForm(forms.ModelForm):
 
 
 class WalletDeleteForm(forms.Form):
-    confirmation = forms.CharField(label="Potwierdź usunięcie", max_length=10)
+    confirmation = forms.CharField(label=_("Potwierdź usunięcie portfela"), max_length=10)
 
     def clean_confirmation(self):
         value = self.cleaned_data["confirmation"]
         if value.strip().lower() != "usuń":
-            raise forms.ValidationError("Aby usunąć portfel, wpisz dokładnie: 'usuń'")
+            raise forms.ValidationError(_("Aby usunąć portfel, wpisz dokładnie: 'usuń'"))
         return value
 
 
 class TransferForm(forms.Form):
     source_wallet = forms.ModelChoiceField(
-        queryset=Wallet.objects.none(), label="Konto źródłowe"
+        queryset=Wallet.objects.none(), label=_("Konto źródłowe")
     )
     destination_wallet = forms.ModelChoiceField(
-        queryset=Wallet.objects.none(), label="Konto docelowe"
+        queryset=Wallet.objects.none(), label=_("Konto docelowe")
     )
-    amount = forms.DecimalField(max_digits=10, decimal_places=2, label="Kwota")
+    amount = forms.DecimalField(max_digits=10, decimal_places=2, label=_("Kwota"))
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -106,8 +114,8 @@ class TransferForm(forms.Form):
 
 
 class DepositForm(forms.Form):
-    wallet = forms.ModelChoiceField(queryset=Wallet.objects.none())
-    amount = forms.DecimalField(max_digits=12, decimal_places=2, min_value=0.01)
+    wallet = forms.ModelChoiceField(queryset=Wallet.objects.none(), label=_("Portfel"))
+    amount = forms.DecimalField(max_digits=12, decimal_places=2, min_value=0.01, label=_("Kwota"))
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)

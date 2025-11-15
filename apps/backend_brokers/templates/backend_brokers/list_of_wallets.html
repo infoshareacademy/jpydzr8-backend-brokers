@@ -1,13 +1,18 @@
 {% extends 'backend_brokers/base.html' %}
+{% load static i18n %}
 
-{% block title %}Twoje portfele{% endblock %}
+{% block title %}{% trans "Twoje portfele" %}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="mb-3">Twoje portfele</h2>
+    <h2 class="mb-3">{% trans "Twoje portfele" %}</h2>
     <div>
-        <a class="btn btn-success mb-3" href="{% url 'add_wallet' %}">Dodaj portfel</a>
-        <a class="btn btn-success mb-3" href="{% url 'deposit' %}" >Zasil konto</a>
+        <a class="btn btn-success mb-3" href="{% url 'add_wallet' %}">
+            {% trans "Dodaj portfel" %}
+        </a>
+        <a class="btn btn-success mb-3" href="{% url 'deposit' %}">
+            {% trans "Zasil konto" %}
+        </a>
     </div>
 
     <ul class="list-group mb-4">
@@ -18,16 +23,28 @@
                 </a>
             </li>
         {% empty %}
-            <li class="list-group-item">Brak portfeli</li>
+            <li class="list-group-item">{% trans "Brak portfeli" %}</li>
         {% endfor %}
     </ul>
 
     <div class="wallet-creation text-muted small">
-        <p>Dla konta typu {{ request.user.profile.get_account_type_display }} możesz założyć {{ request.user.profile.wallet_limit }} portfeli. (Pozostało {{ wallets_remaining }} do osiągnięcia limitu).</p>
-        <p>Dla konta typu {{ request.user.profile.get_account_type_display }} możesz wykonać {{ request.user.profile.transaction_limit }} transakcji z promocyjnym spreadem w miesiącu kalendarzowym. (Pozostało {{ transactions_remaining }} do osiągnięcia limitu).</p>
+        <p>
+            {% blocktrans with account_type=request.user.profile.get_account_type_display wallet_limit=request.user.profile.wallet_limit wallets_remaining=wallets_remaining %}
+                Dla konta typu {{ account_type }} możesz założyć {{ wallet_limit }} portfeli.
+                (Pozostało {{ wallets_remaining }} do osiągnięcia limitu).
+            {% endblocktrans %}
+        </p>
+
+        <p>
+            {% blocktrans with account_type=request.user.profile.get_account_type_display transaction_limit=request.user.profile.transaction_limit transactions_remaining=transactions_remaining %}
+                Dla konta typu {{ account_type }} możesz wykonać {{ transaction_limit }} transakcji z promocyjnym spreadem w miesiącu kalendarzowym.
+                (Pozostało {{ transactions_remaining }} do osiągnięcia limitu).
+            {% endblocktrans %}
+        </p>
     </div>
 </div>
 {% endblock %}
+
 
 
 <!-- <!doctype html>

@@ -1,22 +1,26 @@
 {% extends 'backend_brokers/base.html' %}
+{% load static i18n %}
 
-{% block title %}Błąd usuwania portfela{% endblock %}
+{% block title %}{% trans "Błąd usuwania portfela" %}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="card shadow-sm mx-auto" style="max-width: 600px;">
         <div class="card-body">
-            <h1 class="card-title text-center mb-4 text-danger">Nie można usunąć portfela</h1>
-            
+            <h1 class="card-title text-center mb-4 text-danger">{% trans "Nie można usunąć portfela" %}</h1>
+
             <p class="text-center text-muted">{{ message }}</p>
 
             <div class="text-center mt-3">
-                <a href="{% url 'wallets' %}" class="btn btn-secondary">Powrót do listy portfeli</a>
+                <a href="{% url 'wallets' %}" class="btn btn-secondary">
+                    {% trans "Powrót do listy portfeli" %}
+                </a>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+
 
 
 <!-- <!DOCTYPE html>

@@ -1,29 +1,30 @@
 {% extends 'backend_brokers/base.html' %}
+{% load static i18n %}
 
-{% block title %}Portfel {{ wallet.currency }}{% endblock %}
+{% block title %}{% blocktrans with currency=wallet.currency %}Portfel {{ currency }}{% endblocktrans %}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="card shadow-sm mx-auto" style="max-width: 700px;">
         <div class="card-body">
-            <h1 class="card-title text-center mb-4">Portfel {{ wallet.currency }}</h1>
+            <h1 class="card-title text-center mb-4">{% blocktrans with currency=wallet.currency %}Portfel {{ currency }}{% endblocktrans %}</h1>
 
-            <p><strong>Waluta:</strong> {{ wallet.currency }}</p>
-            <p><strong>Stan konta:</strong> {{ wallet.balance|floatformat:2 }}</p>
-            <p><strong>Numer konta do przelewu:</strong> {{ wallet.iban }}</p>
+            <p><strong>{% trans "Waluta:" %}</strong> {{ wallet.currency }}</p>
+            <p><strong>{% trans "Stan konta:" %}</strong> {{ wallet.balance|floatformat:2 }}</p>
+            <p><strong>{% trans "Numer konta do przelewu:" %}</strong> {{ wallet.iban }}</p>
 
             <hr>
 
-            <h4>Wymiana</h4>
+            <h4>{% trans "Wymiana" %}</h4>
             {% if transactions_remaining <= 0 %}
-                <a href="{% url 'transfer_funds' %}" class="btn btn-success mb-1">Wymień</a><br>
+                <a href="{% url 'transfer_funds' %}" class="btn btn-success mb-1">{% trans "Wymień" %}</a><br>
                 <small class="text-muted">
-                    Wyczerpano limit transakcji z promocyjnym spreadem. Kolejna wymiana będzie po kursie standardowym.
+                    {% trans "Wyczerpano limit transakcji z promocyjnym spreadem. Kolejna wymiana będzie po kursie standardowym." %}
                 </small>
             {% else %}
-                <a href="{% url 'transfer_funds' %}" class="btn btn-success mb-1">Wymień</a><br>
+                <a href="{% url 'transfer_funds' %}" class="btn btn-success mb-1">{% trans "Wymień" %}</a><br>
                 <small class="text-muted">
-                    Pozostało {{ transactions_remaining }} transakcji z promocyjnym spreadem.
+                    {% blocktrans with n=transactions_remaining %}Pozostało {{ n }} transakcji z promocyjnym spreadem.{% endblocktrans %}
                 </small>
             {% endif %}
 
@@ -31,35 +32,37 @@
 
             {% if wallet.balance == 0 %}
                 <form action="{% url 'delete_wallet' wallet.id %}" method="get">
-                    <button type="submit" class="btn btn-danger">Usuń portfel</button>
+                    <button type="submit" class="btn btn-danger">{% trans "Usuń portfel" %}</button>
                 </form>
             {% else %}
-                <p><strong>Usuń portfel</strong></p>
+                <p><strong>{% trans "Usuń portfel" %}</strong></p>
                 <p class="text-muted small">
-                    Ten portfel nie może zostać usunięty ponieważ nie jest pusty. Saldo musi wynosić 0.00
+                    {% trans "Ten portfel nie może zostać usunięty ponieważ nie jest pusty. Saldo musi wynosić 0.00" %}
                 </p>
             {% endif %}
 
             <hr>
 
-            <h4>Historia transakcji dla portfela: {{ wallet.name }}</h4>
+            <h4>{% blocktrans with name=wallet.name %}Historia transakcji dla portfela: {{ name }}{% endblocktrans %}</h4>
             {% if transactions %}
                 <ul class="list-group list-group-flush">
                     {% for tx in transactions %}
                         <li class="list-group-item">
                             <strong>{{ tx.created_at|date:"Y-m-d H:i" }}</strong><br>
-                            {{ tx.amount|floatformat:2 }} {{ tx.from_currency }} z konta {{ tx.source_iban }} wymieniono na 
-                            {{ tx.result_amount|floatformat:2 }} {{ tx.to_currency }} po kursie {{ tx.rate }} i przelano na konto {{ tx.destination_iban }}
+                            {% blocktrans with amt=tx.amount from_curr=tx.from_currency src=tx.source_iban res=tx.result_amount to_curr=tx.to_currency rate=tx.rate dest=tx.destination_iban %}
+                            {{ amt|floatformat:2 }} {{ from_curr }} z konta {{ src }} wymieniono na {{ res|floatformat:2 }} {{ to_curr }} po kursie {{ rate }} i przelano na konto {{ dest }}
+                            {% endblocktrans %}
                         </li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p class="text-muted">Brak transakcji dla tego portfela.</p>
+                <p class="text-muted">{% trans "Brak transakcji dla tego portfela." %}</p>
             {% endif %}
         </div>
     </div>
 </div>
 {% endblock %}
+
 
 
 <!-- 
