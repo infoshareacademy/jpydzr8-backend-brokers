@@ -11,7 +11,7 @@
                 {% trans "Przelej środki między kontami" %}
             </h1>
 
-            <form method="post">
+            <form id="transfer-form" method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <div class="text-center mt-3">
@@ -20,38 +20,82 @@
                     </button>
                 </div>
             </form>
+            <div id="success-message" style="
+                display:none;
+                text-align:center;
+                font-size:22px;
+                font-weight:bold;
+                color:#0f7b0f;
+                margin-top:20px;
+            ">Przekazanie pieniędzy powiodło się!
+            </div>
+            <div id="exchange-preview" class="alert alert-success mt-3" style="display: none;">
+                <strong>Przewidywana kwota po wymianie:</strong> <span id="preview-result"></span><br>
+                <small>Kurs: <span id="preview-rate"></span></small>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const sourceField = document.getElementById("id_source_wallet");
+    const destField = document.getElementById("id_destination_wallet");
+    const amountField = document.getElementById("id_amount");
+
+    function updateEstimate() {
+        const source = sourceField.value;
+        const dest = destField.value;
+        const amount = amountField.value;
+
+        if (!source || !dest || !amount || amount <= 0) {
+            document.getElementById("exchange-preview").style.display = "none";
+            return;
+        }
+
+        fetch(`/api/estimate-exchange/?source_wallet=${source}&destination_wallet=${dest}&amount=${amount}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById("exchange-preview").style.display = "none";
+                    return;
+                }
+
+                document.getElementById("preview-result").innerText = data.result;
+                document.getElementById("preview-rate").innerText = data.rate;
+
+                document.getElementById("exchange-preview").style.display = "block";
+            });
+    }
+
+    sourceField.addEventListener("change", updateEstimate);
+    destField.addEventListener("change", updateEstimate);
+    amountField.addEventListener("input", updateEstimate);
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.getElementById("transfer-form");
+    const message = document.getElementById("success-message");
+    let isSubmitting = false;
+
+    form.addEventListener("submit", function(event) {
+        if (isSubmitting) return;
+
+        event.preventDefault();
+        isSubmitting = true;
+
+        message.style.display = "block";
+        message.classList.add("success-animate");
+
+        setTimeout(() => {
+            form.submit();
+        }, 1100);
+    });
+
+});
+</script>
+
 {% endblock %}
-
-
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Przelej środki między kontami</title>
-</head>
-<body>
-
-
- {% if user.is_authenticated and user.profile %}
- <div align="right">
-    <a href="{% url 'exchange_rates' %}">Kursy walut</a> |
-    <a href="{% url 'wallets' %}">Twoje Portfele</a> |
-    <a href="{% url 'profile' %}">Twój profil</a> |
-
-</div>
-
-  {% endif %}
-
-<h2>Przelej środki między kontami</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Wykonaj przelew</button>
-</form>
-
-</body>
-</html> -->

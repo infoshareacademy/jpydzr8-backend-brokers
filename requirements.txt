@@ -8,3 +8,4 @@ requests==2.32.5
 django-otp
 django-two-factor-auth
 python-dateutil
+reportlab>=3.6.12
